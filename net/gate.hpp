@@ -64,7 +64,7 @@ public:
         m_queue.push(val);
     }
 
-    bool _pop(net::T &val) override
+    bool _pop(T& val) override
     {
         if(!m_queue.empty())
         {

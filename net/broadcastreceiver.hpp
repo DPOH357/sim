@@ -1,14 +1,12 @@
-#ifndef BEACON_H
-#define BEACON_H
+#ifndef BROADCAST_RECEIVER_H
+#define BROADCAST_RECEIVER_H
 
 #include <boost/enable_shared_from_this.hpp>
 #include <boost/bind.hpp>
 #include <boost/thread.hpp>
 #include <boost/atomic.hpp>
 #include <boost/asio.hpp>
-#include <queue>
 #include <functional>
-#include <mutex>
 #include <atomic>
 #include <iostream>
 
@@ -106,8 +104,9 @@ private:
 };
 
 
+
     } // namespace net
 } // namespace sim
 
 
-#endif // BEACON_H
+#endif // BROADCAST_RECEIVER_H
