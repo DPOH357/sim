@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include"beacon/simbeacon.h"
+#include"beacon/beacon.h"
 
 
 int main(int argc, char* argv[])

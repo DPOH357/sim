@@ -12,9 +12,13 @@
 #include <atomic>
 #include <iostream>
 
+#include "gate.hpp"
 
-namespace net
+
+namespace sim
 {
+    namespace net
+    {
 
 
 #define LOG_MESSAGE(x) std::cout << x << std::endl;
@@ -26,9 +30,10 @@ class broadcast_receiver : public boost::enable_shared_from_this<net::broadcast_
 {
     enum { queue_max_size = 256 };
 
-    broadcast_receiver(unsigned int port)
+    broadcast_receiver(unsigned int port, net::gate_interface<T>* gate)
         : m_socket( m_io_service, boost::asio::ip::udp::endpoint(boost::asio::ip::udp::v4(), port) )
         , m_endpoint()
+        , m_gate(gate)
     {
         m_socket.set_option( boost::asio::socket_base::broadcast(true) );
     }
@@ -40,12 +45,14 @@ public:
 
         m_thread->join();
         delete m_thread;
+
+        delete m_gate;
     }
 
-    static boost::shared_ptr<net::broadcast_receiver<T>> create(unsigned int port)
+    static boost::shared_ptr<net::broadcast_receiver<T>> create(unsigned int port, net::gate_interface<T>* gate)
     {
         auto broadcast_receiver
-            = boost::shared_ptr<net::broadcast_receiver<T>>(new net::broadcast_receiver<T>(port));
+            = boost::shared_ptr<net::broadcast_receiver<T>>(new net::broadcast_receiver<T>(port, gate));
 
         broadcast_receiver->m_thread = new boost::thread(&net::broadcast_receiver<T>::run, broadcast_receiver);
 
@@ -54,15 +61,7 @@ public:
 
     bool get_message(T& out_message)
     {
-        boost::lock_guard<boost::mutex> locker(m_mutex);
-        if(!m_queue.empty())
-        {
-            out_message = m_queue.front();
-            m_queue.pop();
-            return true;
-        }
-
-        return false;
+        return m_gate->pop(out_message);
     }
 
 private:
@@ -87,14 +86,7 @@ private:
         (void)receive_bytes;
         if(!error_code)
         {
-            boost::lock_guard<boost::mutex> locker(m_mutex);
-            if(m_queue.size() >= queue_max_size)
-            {
-                m_queue.pop();
-                LOG_MESSAGE(std::string("Queue inputs messages is full."));
-            }
-
-            m_queue.push(m_buffer);
+            m_gate->push(m_buffer);
         }
         else
         {
@@ -105,17 +97,17 @@ private:
     }
 
 private:
-    boost::mutex            m_mutex;
     boost::asio::io_service m_io_service;
     boost::thread*          m_thread;
     boost::asio::ip::udp::socket    m_socket;
     boost::asio::ip::udp::endpoint  m_endpoint;
-    std::queue<T>           m_queue;
+    net::gate_interface<T>* m_gate;
     T                       m_buffer;
 };
 
 
-} // namespace net
+    } // namespace net
+} // namespace sim
 
 
 #endif // BEACON_H
