@@ -2,15 +2,15 @@
 
 #include <stdlib.h>
 
-double sim::tool::random(double rangeMin, double rangeMax)
+int sim::tool::random(int rangeMin, int rangeMax)
 {
     if(rangeMin > rangeMax)
     {
-        double tmp = rangeMin;
+        int tmp = rangeMin;
         rangeMin = rangeMax;
         rangeMax = tmp;
     }
-    return ((double)rand() / (RAND_MAX + 1) \
+    return (rand() / (RAND_MAX + 1) \
         * (rangeMax - rangeMin) + rangeMin);
 }
 

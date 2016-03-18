@@ -26,8 +26,6 @@ template <typename T>
 class broadcast_receiver : public boost::enable_shared_from_this<net::broadcast_receiver<T> >
                          , public boost::noncopyable
 {
-    enum { queue_max_size = 256 };
-
     broadcast_receiver(unsigned int port, net::gate_interface<T>* gate)
         : m_socket( m_io_service, boost::asio::ip::udp::endpoint(boost::asio::ip::udp::v4(), port) )
         , m_endpoint()

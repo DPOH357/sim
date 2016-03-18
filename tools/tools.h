@@ -8,7 +8,7 @@ namespace sim
     namespace tool
     {
 
-double random(double rangeMin, double rangeMax);
+int random(int rangeMin, int rangeMax);
 
 ///////////////////////////////////////////////////////////////////////////////
 

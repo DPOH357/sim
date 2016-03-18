@@ -6,20 +6,19 @@ sim::beacon::beacon::beacon(unsigned int port)
     : m_mode(nullptr)
     , m_id(0)
 {
-    const unsigned short repeat_broadcast_message_count = 3;
     const unsigned short broadcast_messages_buffer_size = 32;
+    const unsigned short repeat_broadcast_message_count = 3;
 
     m_sender
         = net::broadcast_sender<sim::beacon::message>::create(
                 port,
                 new sim::net::gate_message<sim::beacon::message>(
-                    repeat_broadcast_message_count,
-                    broadcast_messages_buffer_size));
+                    broadcast_messages_buffer_size,
+                    repeat_broadcast_message_count));
     m_receiver
         = net::broadcast_receiver<sim::beacon::message>::create(
                 port,
                 new sim::net::gate_message<sim::beacon::message>(
-                    repeat_broadcast_message_count,
                     broadcast_messages_buffer_size));
 
     m_mode = new sim::beacon::mode_authen(m_sender, m_receiver);

@@ -44,7 +44,7 @@ template <class T>
 class gate_message : public gate_interface<T>
 {
 public:
-    gate_message(unsigned short repeat_count, unsigned int queue_max_size)
+    gate_message(unsigned int queue_max_size, unsigned short repeat_count = 1)
         : m_repeat_count(repeat_count)
         , m_queue_max_size(queue_max_size)
         , m_repeat_counter(0)
