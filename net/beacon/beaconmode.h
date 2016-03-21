@@ -7,7 +7,7 @@
 #include "beaconmode.h"
 #include <tools/tools.h>
 
-#include <set>
+#include <unordered_map>
 
 namespace sim
 {
@@ -31,7 +31,8 @@ class mode_default : public sim::beacon::mode_abstract
 public:
     mode_default(boost::shared_ptr< net::broadcast_sender<sim::beacon::message> > sender,
                  boost::shared_ptr< net::broadcast_receiver<sim::beacon::message> > receiver,
-                 unsigned char id);
+                 unsigned char id,
+                 boost::asio::ip::address address);
 
     bool run() override;
 
@@ -44,6 +45,7 @@ private:
     sim::tool::timer m_timer;
 
     unsigned char m_id;
+    boost::asio::ip::address m_address;
 
     unsigned int m_last_response_message_mark;
 };
@@ -68,7 +70,7 @@ private:
 
     sim::tool::timer        m_timer;
     sim::tool::timer        m_timer_main;
-    std::set<unsigned char> m_busy_id_list;
+    std::unordered_map<unsigned char, boost::asio::ip::address> m_busy_id_list;
     unsigned int m_last_response_message_mark;
 };
 

@@ -41,8 +41,8 @@ bool sim::beacon::mode_authen::run()
 
                 case sim::beacon::message_type::Response:
                     {
-                        m_busy_id_list.insert(receiving_message.param);
-                        LOG_MESSAGE(std::string("Receive response message, busy id ") + std::to_string(receiving_message.param));
+                        m_busy_id_list.insert( std::pair<unsigned char, boost::asio::ip::address>(receiving_message.id, receiving_message.address) );
+                        LOG_MESSAGE(std::string("Receive response message, busy id ") + std::to_string(receiving_message.id));
                     }
                     break;
 
@@ -95,11 +95,14 @@ unsigned char sim::beacon::mode_authen::get_free_id() const
 
 sim::beacon::mode_default::mode_default(
         boost::shared_ptr<net::broadcast_sender<sim::beacon::message> > sender,
-        boost::shared_ptr<net::broadcast_receiver<sim::beacon::message> > receiver, unsigned char id)
+        boost::shared_ptr<net::broadcast_receiver<sim::beacon::message> > receiver,
+        unsigned char id,
+        boost::asio::ip::address address)
     : mc_time_duration(500)
     , m_sender(sender)
     , m_receiver(receiver)
     , m_id(id)
+    , m_address(address)
     , m_last_response_message_mark(0)
 {
     m_timer.start(mc_time_duration);
@@ -124,7 +127,7 @@ bool sim::beacon::mode_default::run()
         {
             m_last_response_message_mark = sim::tool::random(1, 0xFFFFFFFF);
             sim::beacon::message send_message(m_last_response_message_mark,
-                                              sim::beacon::message_type::Response, m_id);
+                                              sim::beacon::message_type::Response, m_id, m_address);
             m_sender->send(send_message);
             LOG_MESSAGE("Send response message");
         }

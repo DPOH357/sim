@@ -81,7 +81,7 @@ private:
         }
         else
         {
-            LOG_MESSAGE(std::string("Error receive - ") + error_code.message());
+            LOG_MESSAGE(std::string("UDP: Error receive: ") + error_code.message());
         }
 
         do_receive();

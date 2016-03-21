@@ -19,7 +19,7 @@ typedef boost::shared_ptr< net::broadcast_receiver<sim::beacon::message> >  broa
 class beacon
 {
 public:
-    beacon(unsigned int port);
+    beacon(boost::asio::ip::address address, unsigned int port);
     ~beacon();
 
     void run();
@@ -40,6 +40,8 @@ private:
     sim::beacon::mode_abstract* m_mode;
 
     unsigned int m_id;
+
+    const boost::asio::ip::address m_address;
 };
 
 

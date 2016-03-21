@@ -2,9 +2,10 @@
 
 #include "beaconmode.h"
 
-sim::beacon::beacon::beacon(unsigned int port)
+sim::beacon::beacon::beacon(boost::asio::ip::address address, unsigned int port)
     : m_mode(nullptr)
     , m_id(0)
+    , m_address(address)
 {
     const unsigned short broadcast_messages_buffer_size = 32;
     const unsigned short repeat_broadcast_message_count = 3;
@@ -40,7 +41,7 @@ void sim::beacon::beacon::run()
             if(m_id)
             {
                 delete m_mode;
-                m_mode = new sim::beacon::mode_default(m_sender, m_receiver, m_id);
+                m_mode = new sim::beacon::mode_default(m_sender, m_receiver, m_id, m_address);
                 LOG_MESSAGE("Start default mode");
             }
         }
