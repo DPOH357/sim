@@ -1,12 +1,17 @@
 #ifndef SIMTOOLS_H
 #define SIMTOOLS_H
 
-#include<boost/date_time/posix_time/posix_time.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
+#include <iostream>
 
 namespace sim
 {
     namespace tool
     {
+
+#define LOG_MESSAGE(x) std::cout << x << std::endl;
+
+///////////////////////////////////////////////////////////////////////////////
 
 int random(int rangeMin, int rangeMax);
 

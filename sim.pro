@@ -22,6 +22,7 @@ HEADERS += \
     net/beacon/beaconmode.h \
     net/broadcastreceiver.hpp \
     net/broadcastsender.hpp \
+    net/tcp_connection.hpp \
     net/gate.hpp \
     tools/tools.h
 

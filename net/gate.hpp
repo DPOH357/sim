@@ -31,9 +31,16 @@ public:
         return _pop(val);
     }
 
+    bool empty()
+    {
+        boost::lock_guard<boost::mutex> locker(m_mutex);
+        return _empty();
+    }
+
 private:
     virtual void _push(const T& val) = 0;
     virtual bool _pop(T& val) = 0;
+    virtual bool _empty() = 0;
 
 private:
     boost::mutex        m_mutex;
@@ -83,6 +90,11 @@ public:
         return false;
     }
 
+    bool _empty() override
+    {
+        return m_queue.empty();
+    }
+
 private:
     unsigned short  m_repeat_count;
     unsigned int    m_queue_max_size;
@@ -96,26 +108,23 @@ class gate_stream : public gate_interface<T>
 public:
     void _push(const T& val) override
     {
-        if(m_queue.size() >= m_queue_max_size)
-        {
-            m_queue.pop();
-            LOG_MESSAGE(std::string("Queue is full."));
-        }
-
-        m_queue.push(val);
+        m_buffer = val;
     }
 
     bool _pop(net::T &val) override
     {
-        if(!m_queue.empty())
-        {
-            val = m_queue.front();
-            m_queue.pop();
-            return true;
-        }
+        val = m_buffer;
 
+        return true;
+    }
+
+    bool _empty() override
+    {
         return false;
     }
+
+private:
+    T m_buffer;
 };
 
 

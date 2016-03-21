@@ -7,8 +7,6 @@
 #include <boost/atomic.hpp>
 #include <boost/asio.hpp>
 #include <functional>
-#include <atomic>
-#include <iostream>
 
 #include "gate.hpp"
 
@@ -17,9 +15,6 @@ namespace sim
 {
     namespace net
     {
-
-
-#define LOG_MESSAGE(x) std::cout << x << std::endl;
 
 
 template <typename T>

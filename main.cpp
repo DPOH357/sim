@@ -1,6 +1,7 @@
 #include <iostream>
 
-#include"beacon/beacon.h"
+#include "net/beacon/beacon.h"
+#include "net/tcp_connection.hpp"
 
 
 int main(int argc, char* argv[])

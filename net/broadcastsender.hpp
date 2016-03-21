@@ -1,14 +1,11 @@
 #ifndef BROADCAST_SENDER_H
 #define BROADCAST_SENDER_H
 
+#include "tools/tools.h"
 #include <boost/enable_shared_from_this.hpp>
 #include <boost/bind.hpp>
 #include <boost/thread.hpp>
-#include <boost/atomic.hpp>
 #include <boost/asio.hpp>
-#include <queue>
-#include <atomic>
-#include <iostream>
 
 #include "gate.hpp"
 
@@ -18,15 +15,11 @@ namespace sim
     namespace net
     {
 
-#define LOG_MESSAGE(x) std::cout << x << std::endl;
-
 
 template < class T >
 class broadcast_sender : public boost::enable_shared_from_this<net::broadcast_sender<T> >
                        , public boost::noncopyable
 {
-    enum { queue_max_size = 256 };
-
     broadcast_sender(unsigned int port, net::gate_interface<T>* gate)
         : m_socket( m_io_service, boost::asio::ip::udp::endpoint(boost::asio::ip::udp::v4(), 0) )
         , m_endpoint( boost::asio::ip::address_v4::broadcast(), port )
