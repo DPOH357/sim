@@ -16,11 +16,11 @@ namespace sim
 typedef boost::shared_ptr< net::broadcast_sender<sim::beacon::message> >    broadcast_sender;
 typedef boost::shared_ptr< net::broadcast_receiver<sim::beacon::message> >  broadcast_receiver;
 
-class beacon
+class detector
 {
 public:
-    beacon(boost::asio::ip::address address, unsigned int port);
-    ~beacon();
+    detector(char name[beacon::data::name_size], boost::asio::ip::address address, unsigned int port);
+    ~detector();
 
     void run();
 
@@ -40,6 +40,7 @@ private:
     sim::beacon::mode_abstract* m_mode;
 
     unsigned int m_id;
+    char m_name[beacon::data::name_size];
 
     const boost::asio::ip::address m_address;
 };

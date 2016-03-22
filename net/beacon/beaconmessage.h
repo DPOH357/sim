@@ -15,26 +15,59 @@ enum class message_type
     Response
 };
 
+struct data
+{
+    enum { name_size = 64 };
+
+    unsigned char id;
+    char name[name_size];
+    boost::asio::ip::address address;
+
+    data()
+        : id(0)
+    {
+        memset(name, 0, name_size);
+    }
+
+    data(unsigned char _id, char _name[], boost::asio::ip::address _address)
+        : id(_id)
+        , address(_address)
+    {
+        strcpy_s(name, name_size, _name);
+    }
+
+    data(const beacon::data& data)
+    {
+        id = data.id;
+        address = data.address;
+        strcpy_s(name, name_size, data.name);
+    }
+};
+
 struct message
 {
-    unsigned int  mark;
+    int  mark;
     beacon::message_type message_type;
-    unsigned char id;
-    boost::asio::ip::address address;
+    beacon::data data;
 
     message()
         : mark(0)
         , message_type(beacon::message_type::Invalid)
-        , id(0)
     {
 
     }
 
-    message(unsigned int _mark, beacon::message_type _message_type, unsigned char _param = 0, boost::asio::ip::address _address = boost::asio::ip::address())
+    message(int _mark)
         : mark(_mark)
-        , message_type(_message_type)
-        , id(_param)
-        , address(_address)
+        , message_type(message_type::Request)
+    {
+
+    }
+
+    message(int _mark, const beacon::data& _data)
+        : mark(_mark)
+        , message_type(message_type::Response)
+        , data(_data)
     {
 
     }

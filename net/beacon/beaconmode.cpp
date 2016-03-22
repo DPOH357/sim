@@ -41,8 +41,8 @@ bool sim::beacon::mode_authen::run()
 
                 case sim::beacon::message_type::Response:
                     {
-                        m_busy_id_list.insert( std::pair<unsigned char, boost::asio::ip::address>(receiving_message.id, receiving_message.address) );
-                        LOG_MESSAGE(std::string("Receive response message, busy id ") + std::to_string(receiving_message.id));
+                        m_beacons_list.insert( beacon_data_pair(receiving_message.data.id, receiving_message.data) );
+                        LOG_MESSAGE(std::string("Receive response message, busy id ") + std::to_string(receiving_message.data.id));
                     }
                     break;
 
@@ -62,8 +62,8 @@ bool sim::beacon::mode_authen::run()
         else
         {
             m_last_response_message_mark = (unsigned int)sim::tool::random(1, 0xFFFFFFFF);
-            sim::beacon::message send_message(m_last_response_message_mark, sim::beacon::message_type::Request);
-            m_sender->send(send_message);
+            sim::beacon::message request_message(m_last_response_message_mark);
+            m_sender->send(request_message);
 
             LOG_MESSAGE("Send request");
         }
@@ -80,8 +80,8 @@ unsigned char sim::beacon::mode_authen::get_free_id() const
 
     while(id)
     {
-        auto i = m_busy_id_list.find(id);
-        if(i == m_busy_id_list.end())
+        auto i = m_beacons_list.find(id);
+        if(i == m_beacons_list.end())
         {
             return id;
         }
@@ -93,16 +93,13 @@ unsigned char sim::beacon::mode_authen::get_free_id() const
 
 ///////////////////////////////////////////////////////////////////////////////
 
-sim::beacon::mode_default::mode_default(
-        boost::shared_ptr<net::broadcast_sender<sim::beacon::message> > sender,
+sim::beacon::mode_default::mode_default(boost::shared_ptr<net::broadcast_sender<sim::beacon::message> > sender,
         boost::shared_ptr<net::broadcast_receiver<sim::beacon::message> > receiver,
-        unsigned char id,
-        boost::asio::ip::address address)
+        beacon::data beacon_data)
     : mc_time_duration(500)
     , m_sender(sender)
     , m_receiver(receiver)
-    , m_id(id)
-    , m_address(address)
+    , m_beacon_data(beacon_data)
     , m_last_response_message_mark(0)
 {
     m_timer.start(mc_time_duration);
@@ -126,9 +123,8 @@ bool sim::beacon::mode_default::run()
         if(bRequest)
         {
             m_last_response_message_mark = sim::tool::random(1, 0xFFFFFFFF);
-            sim::beacon::message send_message(m_last_response_message_mark,
-                                              sim::beacon::message_type::Response, m_id, m_address);
-            m_sender->send(send_message);
+            sim::beacon::message response_message(m_last_response_message_mark, m_beacon_data);
+            m_sender->send(response_message);
             LOG_MESSAGE("Send response message");
         }
 
