@@ -34,3 +34,54 @@ bool sim::tool::timer::is_cutoff() const
 
     return time_duration > m_time_duration;
 }
+
+///////////////////////////////////////////////////////////////////////////////
+
+sim::tool::raw_data::raw_data(const void *data_ptr, size_t data_size)
+{
+    m_data_ptr = new char[data_size];
+    std::memcpy(m_data_ptr, data_ptr, data_size);
+    m_data_size = data_size;
+}
+
+sim::tool::raw_data::raw_data(const sim::tool::raw_data &data)
+{
+    m_data_size = data.m_data_size;
+    m_data_ptr = new char[data.m_data_size];
+    std::memcpy(m_data_ptr, data.m_data_ptr, data.m_data_size);
+}
+
+sim::tool::raw_data::~raw_data()
+{
+    delete [] m_data_ptr;
+}
+
+void sim::tool::raw_data::set(const void *data_ptr, size_t data_size)
+{
+    if(m_data_size < data_size)
+    {
+        delete [] m_data_ptr;
+        m_data_ptr = new char[data_size];
+    }
+
+    m_data_size = data_size;
+    std::memcpy(m_data_ptr, data_ptr, data_size);
+}
+
+size_t sim::tool::raw_data::get_data_size() const
+{
+    return m_data_size;
+}
+
+void sim::tool::raw_data::get_data(void *data_ptr) const
+{
+    std::memcpy(data_ptr, m_data_ptr, m_data_size);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+sim::tool::raw_data_queue::raw_data_queue(unsigned int length)
+    : m_length(length)
+{
+
+}

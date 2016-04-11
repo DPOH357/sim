@@ -15,18 +15,20 @@ namespace sim
     namespace net
     {
 
+using namespace boost::asio;
+
 
 template < class T >
 class broadcast_sender : public boost::enable_shared_from_this<net::broadcast_sender<T> >
                        , public boost::noncopyable
 {
     broadcast_sender(unsigned int port, net::gate_interface<T>* gate)
-        : m_socket( m_io_service, boost::asio::ip::udp::endpoint(boost::asio::ip::udp::v4(), 0) )
-        , m_endpoint( boost::asio::ip::address_v4::broadcast(), port )
+        : m_socket( m_io_service, ip::udp::endpoint(ip::udp::v4(), 0) )
+        , m_endpoint( ip::address_v4::broadcast(), port )
         , m_gate(gate)
     {
-        m_socket.set_option( boost::asio::ip::udp::socket::reuse_address(true) );
-        m_socket.set_option( boost::asio::socket_base::broadcast(true) );
+        m_socket.set_option( ip::udp::socket::reuse_address(true) );
+        m_socket.set_option( socket_base::broadcast(true) );
     }
 
 public:
@@ -69,7 +71,7 @@ private:
             boost::this_thread::sleep_for( boost::chrono::milliseconds(20) );
         }
 
-        m_socket.async_send_to( boost::asio::buffer( &m_buffer,
+        m_socket.async_send_to( buffer( &m_buffer,
                                                      sizeof(T) ),
                                 m_endpoint,
                                 boost::bind( &net::broadcast_sender<T>::handler_send
@@ -92,10 +94,10 @@ private:
 private:
     net::gate_interface<T>*         m_gate;
     T                               m_buffer;
-    boost::asio::io_service         m_io_service;
+    io_service                      m_io_service;
     boost::thread*                  m_thread;
-    boost::asio::ip::udp::socket    m_socket;
-    boost::asio::ip::udp::endpoint  m_endpoint;
+    ip::udp::socket    m_socket;
+    ip::udp::endpoint  m_endpoint;
 };
 
 

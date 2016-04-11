@@ -16,17 +16,18 @@ namespace sim
     namespace net
     {
 
+using namespace boost::asio;
 
 template <typename T>
 class broadcast_receiver : public boost::enable_shared_from_this<net::broadcast_receiver<T> >
                          , public boost::noncopyable
 {
     broadcast_receiver(unsigned int port, net::gate_interface<T>* gate)
-        : m_socket( m_io_service, boost::asio::ip::udp::endpoint(boost::asio::ip::udp::v4(), port) )
+        : m_socket( m_io_service, ip::udp::endpoint(ip::udp::v4(), port) )
         , m_endpoint()
         , m_gate(gate)
     {
-        m_socket.set_option( boost::asio::socket_base::broadcast(true) );
+        m_socket.set_option( socket_base::broadcast(true) );
     }
 
 public:
@@ -64,7 +65,7 @@ private:
 
     void do_receive()
     {
-        m_socket.async_receive_from( boost::asio::buffer( &m_buffer
+        m_socket.async_receive_from( buffer( &m_buffer
                                                         , sizeof(T) ),
                                      m_endpoint,
                                      boost::bind( &net::broadcast_receiver<T>::handler_receive
@@ -88,10 +89,10 @@ private:
     }
 
 private:
-    boost::asio::io_service m_io_service;
+    io_service m_io_service;
     boost::thread*          m_thread;
-    boost::asio::ip::udp::socket    m_socket;
-    boost::asio::ip::udp::endpoint  m_endpoint;
+    ip::udp::socket    m_socket;
+    ip::udp::endpoint  m_endpoint;
     net::gate_interface<T>* m_gate;
     T                       m_buffer;
 };

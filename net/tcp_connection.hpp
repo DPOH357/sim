@@ -15,30 +15,19 @@ namespace sim
     namespace net
     {
 
+using namespace boost::asio;
+
 template <typename T>
 class tcp_connection : public boost::enable_shared_from_this<net::tcp_connection<T> >
                      , public boost::noncopyable
 {
-    tcp_connection(unsigned int port, net::gate_interface<T>* gate_send, net::gate_interface<T>* gate_receive)
+    tcp_connection(net::gate_interface<T>* gate_send, net::gate_interface<T>* gate_receive)
         : m_socket(m_io_service)
         , m_gate_receive(gate_receive)
         , m_gate_send(gate_send)
         , m_b_valid(true)
     {
-        boost::asio::ip::tcp::endpoint endpoint(boost::asio::ip::tcp::v4(), port);
-        boost::asio::ip::tcp::acceptor acceptor(m_io_service, endpoint);
 
-        acceptor.async_accept( m_socket, boost::bind( &net::tcp_connection<T>::handler_accept, shared_from_this) );
-    }
-
-    tcp_connection(boost::asio::ip::address address, unsigned int port, net::gate_interface<T>* gate_send, net::gate_interface<T>* gate_receive)
-        : m_socket(m_io_service)
-        , m_gate_receive(gate_receive)
-        , m_gate_send(gate_send)
-        , m_b_valid(true)
-    {
-        boost::asio::ip::tcp::endpoint endpoint(address, port);
-        m_socket.async_connect(endpoint, boost::bind( &net::tcp_connection<T>::handler_connect, shared_from_this) );
     }
 
 public:
@@ -50,23 +39,34 @@ public:
         m_thread->join();
         delete m_thread;
 
-        delete m_gate;
+        delete m_gate_receive;
+        delete m_gate_send;
     }
 
     static boost::shared_ptr<net::tcp_connection<T>> create(unsigned int port, net::gate_interface<T>* gate_output, net::gate_interface<T>* gate_input)
     {
         auto tcp_connection
-            = boost::shared_ptr<net::tcp_connection<T>>(new net::tcp_connection<T>(port, gate_output, gate_input));
+            = boost::shared_ptr<net::tcp_connection<T>>(new net::tcp_connection<T>(gate_output, gate_input));
+
+        ip::tcp::endpoint endpoint(ip::tcp::v4(), port);
+        ip::tcp::acceptor acceptor(tcp_connection->m_io_service, endpoint);
+
+        acceptor.async_accept( tcp_connection->m_socket,
+                               boost::bind( &net::tcp_connection<T>::handler_accept, tcp_connection, _1) );
 
         tcp_connection->m_thread = new boost::thread(&net::tcp_connection<T>::run, tcp_connection);
 
         return tcp_connection;
     }
 
-    static boost::shared_ptr<net::tcp_connection<T>> create(boost::asio::ip::address address, unsigned int port, net::gate_interface<T>* gate_output, net::gate_interface<T>* gate_input)
+    static boost::shared_ptr<net::tcp_connection<T>> create(ip::address address, unsigned int port, net::gate_interface<T>* gate_output, net::gate_interface<T>* gate_input)
     {
         auto tcp_connection
-            = boost::shared_ptr<net::tcp_connection<T>>(new net::tcp_connection<T>(address, port, gate_output, gate_input));
+            = boost::shared_ptr<net::tcp_connection<T>>(new net::tcp_connection<T>(gate_output, gate_input));
+
+        ip::tcp::endpoint endpoint(address, port);
+        tcp_connection->m_socket.async_connect(endpoint,
+                                               boost::bind( &net::tcp_connection<T>::handler_connect, tcp_connection, _1) );
 
         tcp_connection->m_thread = new boost::thread(&net::tcp_connection<T>::run, tcp_connection);
 
@@ -100,13 +100,13 @@ private:
         {
             if(b_send_priority)
             {
-                if(!m_gate_output->empty())
+                if(!m_gate_send->empty())
                 {
                     do_send();
                 }
                 else
                 {
-                    if(m_socket.available() > 0)
+                    if(m_socket.available() >= sizeof(T))
                     {
                         do_receive();
                     }
@@ -114,13 +114,13 @@ private:
             }
             else
             {
-                if(m_socket.available() > 0)
+                if(m_socket.available() > sizeof(T))
                 {
                     do_receive();
                 }
                 else
                 {
-                    if(!m_gate_output->empty())
+                    if(!m_gate_send->empty())
                     {
                         do_send();
                     }
@@ -155,9 +155,9 @@ private:
 
     void do_receive()
     {
-        m_socket.async_receive(boost::asio::buffer(&m_buffer, sizeof(m_buffer)),
-                               boost::bind(&net::tcp_connection<T>::handler_receive)
-                                          , shared_from_this(), _1, _2);
+        m_socket.async_receive(buffer(&m_buffer, sizeof(m_buffer)),
+                               boost::bind(&net::tcp_connection<T>::handler_receive
+                                          , shared_from_this(), _1, _2));
     }
 
     void handler_receive( const boost::system::error_code &error_code
@@ -165,7 +165,7 @@ private:
     {
         if(!error_code)
         {
-            m_gate_input->push(m_buffer);
+            m_gate_receive->push(m_buffer);
             do_run(true);
         }
         else
@@ -177,10 +177,10 @@ private:
 
     void do_send()
     {
-        m_gate_output->pop(m_buffer);
-        m_socket.async_write_some( boost::asio::buffer(&m_buffer, sizeof(m_buffer)),
-                                   boost::bind(&net::tcp_connection<T>::handler_send)
-                                              , shared_from_this(), _1, _2);
+        m_gate_send->pop(m_buffer);
+        m_socket.async_write_some( buffer(&m_buffer, sizeof(m_buffer)),
+                                   boost::bind(&net::tcp_connection<T>::handler_send
+                                              , shared_from_this(), _1, _2));
     }
 
     void handler_send( const boost::system::error_code &error_code
@@ -199,14 +199,13 @@ private:
 
 private:
     boost::atomic<bool>     m_b_valid;
-    boost::asio::io_service m_io_service;
+    io_service              m_io_service;
     boost::thread*          m_thread;
-    boost::asio::ip::udp::socket    m_socket;
+    ip::tcp::socket         m_socket;
     net::gate_interface<T>* m_gate_receive;
     net::gate_interface<T>* m_gate_send;
     T                       m_buffer;
 };
-
 
 
     } // namespace net
