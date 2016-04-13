@@ -3,6 +3,8 @@
 #include "net/beacon/beacon.h"
 #include "net/tcp_connection.hpp"
 
+#include "tools/tools.h"
+
 void test_net_beacon()
 {
     std::cout << "*** Net beacon testing ***" << std::endl;
@@ -83,7 +85,7 @@ void test_tcp_connection()
     const unsigned short buffer_messages_size(1024);
     const unsigned short port(9999);
 
-    boost::shared_ptr<sim::net::tcp_connection<test_tcp_message>> connection;
+    boost::shared_ptr<sim::net::tcp_connection> connection;
 
     switch(mode)
     {
@@ -91,10 +93,7 @@ void test_tcp_connection()
     {
         std::cout << "-Server-" << std::endl;
 
-        auto gate_inp = new sim::net::gate_message<test_tcp_message>(buffer_messages_size);
-        auto gate_out = new sim::net::gate_message<test_tcp_message>(buffer_messages_size);
-
-        connection = sim::net::tcp_connection<test_tcp_message>::create(port, gate_out, gate_inp);
+        connection = sim::net::tcp_connection::create_wait_connection(port, sizeof(test_tcp_message));
     }
     break;
 
@@ -107,10 +106,7 @@ void test_tcp_connection()
 
         boost::asio::ip::address address(boost::asio::ip::address::from_string(str));
 
-        auto gate_inp = new sim::net::gate_message<test_tcp_message>(buffer_messages_size);
-        auto gate_out = new sim::net::gate_message<test_tcp_message>(buffer_messages_size);
-
-        connection = sim::net::tcp_connection<test_tcp_message>::create(address, port, gate_out, gate_inp);
+        connection = sim::net::tcp_connection::create_connect(address, port, sizeof(test_tcp_message));
     }
     break;
 
@@ -118,6 +114,7 @@ void test_tcp_connection()
         return;
     }
 
+    sim::tool::raw_data raw_data(sizeof(test_tcp_message));
     test_tcp_message message;
 
     int command(-1);
@@ -134,26 +131,22 @@ void test_tcp_connection()
         {
         case 1:
         {
-            while(connection->get_message(message))
+            while(connection->get_message(raw_data))
             {
-                std::cout << message.text << std::endl;
+                if(raw_data.get_data(message))
+                {
+                    std::cout << message.text << std::endl;
+                }
             }
         }
         break;
 
         case 2:
         {
-            unsigned short repeat_count(1);
-            std::cout << "Repeat count: ";
-            std::cin >> repeat_count;
-
             std::cout << std::endl << "Message: ";
             std::cin >> message.text;
 
-            for(unsigned short i = 0; i < repeat_count; ++i)
-            {
-                connection->send_message(message);
-            }
+            connection->send_message(message);
         }
         break;
 

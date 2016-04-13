@@ -2,7 +2,7 @@ TEMPLATE = app
 CONFIG += console
 CONFIG -= app_bundle
 CONFIG -= qt
-CONFIG += c++11
+CONFIG += c++14
 
 win32: INCLUDEPATH += C:/boost_1_58_0/
 unix:  INCLUDEPATH += /usr/local/
@@ -29,5 +29,6 @@ HEADERS += \
 SOURCES += \
     main.cpp \
     net/beacon/beacon.cpp \
-net/beacon/beaconmode.cpp \
+    net/beacon/beaconmode.cpp \
+    net/tcp_connection.cpp \
     tools/tools.cpp

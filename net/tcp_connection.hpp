@@ -9,6 +9,8 @@
 
 #include "gate.hpp"
 
+#include "tools/tools.h"
+
 
 namespace sim
 {
@@ -17,194 +19,51 @@ namespace sim
 
 using namespace boost::asio;
 
-template <typename T>
-class tcp_connection : public boost::enable_shared_from_this<net::tcp_connection<T> >
+class tcp_connection : public boost::enable_shared_from_this<net::tcp_connection>
                      , public boost::noncopyable
 {
-    tcp_connection(net::gate_interface<T>* gate_send, net::gate_interface<T>* gate_receive)
-        : m_socket(m_io_service)
-        , m_gate_receive(gate_receive)
-        , m_gate_send(gate_send)
-        , m_b_valid(true)
-    {
-
-    }
+    tcp_connection(size_t data_size);
 
 public:
-    ~tcp_connection()
-    {
-        m_socket.close();
-        m_b_valid = false;
+    ~tcp_connection();
 
-        m_thread->join();
-        delete m_thread;
+    static boost::shared_ptr<net::tcp_connection> create_wait_connection(unsigned int port, size_t data_size);
 
-        delete m_gate_receive;
-        delete m_gate_send;
-    }
+    static boost::shared_ptr<net::tcp_connection> create_connect(ip::address address, unsigned int port, size_t data_size);
 
-    static boost::shared_ptr<net::tcp_connection<T>> create(unsigned int port, net::gate_interface<T>* gate_output, net::gate_interface<T>* gate_input)
-    {
-        auto tcp_connection
-            = boost::shared_ptr<net::tcp_connection<T>>(new net::tcp_connection<T>(gate_output, gate_input));
+    bool get_message(tool::raw_data& raw_data);
 
-        ip::tcp::endpoint endpoint(ip::tcp::v4(), port);
-        ip::tcp::acceptor acceptor(tcp_connection->m_io_service, endpoint);
+    void send_message(const tool::raw_data& raw_data);
 
-        acceptor.async_accept( tcp_connection->m_socket,
-                               boost::bind( &net::tcp_connection<T>::handler_accept, tcp_connection, _1) );
-
-        tcp_connection->m_thread = new boost::thread(&net::tcp_connection<T>::run, tcp_connection);
-
-        return tcp_connection;
-    }
-
-    static boost::shared_ptr<net::tcp_connection<T>> create(ip::address address, unsigned int port, net::gate_interface<T>* gate_output, net::gate_interface<T>* gate_input)
-    {
-        auto tcp_connection
-            = boost::shared_ptr<net::tcp_connection<T>>(new net::tcp_connection<T>(gate_output, gate_input));
-
-        ip::tcp::endpoint endpoint(address, port);
-        tcp_connection->m_socket.async_connect(endpoint,
-                                               boost::bind( &net::tcp_connection<T>::handler_connect, tcp_connection, _1) );
-
-        tcp_connection->m_thread = new boost::thread(&net::tcp_connection<T>::run, tcp_connection);
-
-        return tcp_connection;
-    }
-
-    bool get_message(T& out_message)
-    {
-        return m_gate_receive->pop(out_message);
-    }
-
-    void send_message(const T& message)
-    {
-        m_gate_send->push(message);
-    }
-
-    bool valid() const
-    {
-        return m_b_valid;
-    }
+    bool valid() const;
 
 private:
-    void run()
-    {
-        m_io_service.run();
-    }
+    void run();
 
-    void do_run(bool b_send_priority)
-    {
-        while(m_b_valid)
-        {
-            if(b_send_priority)
-            {
-                if(!m_gate_send->empty())
-                {
-                    do_send();
-                }
-                else
-                {
-                    if(m_socket.available() >= sizeof(T))
-                    {
-                        do_receive();
-                    }
-                }
-            }
-            else
-            {
-                if(m_socket.available() > sizeof(T))
-                {
-                    do_receive();
-                }
-                else
-                {
-                    if(!m_gate_send->empty())
-                    {
-                        do_send();
-                    }
-                }
-            }
-        }
-    }
+    void do_run(bool b_send_priority);
 
-    void handler_accept(const boost::system::error_code& error_code)
-    {
-        if(error_code)
-        {
-            m_b_valid = false;
-        }
-        else
-        {
-            do_run(false);
-        }
-    }
+    void handler_accept(const boost::system::error_code& error_code);
 
-    void handler_connect(const boost::system::error_code& error_code)
-    {
-        if(error_code)
-        {
-            m_b_valid = false;
-        }
-        else
-        {
-            do_run(false);
-        }
-    }
+    void handler_connect(const boost::system::error_code& error_code);
 
-    void do_receive()
-    {
-        m_socket.async_receive(buffer(&m_buffer, sizeof(m_buffer)),
-                               boost::bind(&net::tcp_connection<T>::handler_receive
-                                          , shared_from_this(), _1, _2));
-    }
+    void do_receive();
 
     void handler_receive( const boost::system::error_code &error_code
-                        , std::size_t receive_bytes)
-    {
-        if(!error_code)
-        {
-            m_gate_receive->push(m_buffer);
-            do_run(true);
-        }
-        else
-        {
-            m_b_valid = false;
-            LOG_MESSAGE(std::string("TCP: Error receive: ") + error_code.message());
-        }
-    }
+                        , std::size_t receive_bytes);
 
-    void do_send()
-    {
-        m_gate_send->pop(m_buffer);
-        m_socket.async_write_some( buffer(&m_buffer, sizeof(m_buffer)),
-                                   boost::bind(&net::tcp_connection<T>::handler_send
-                                              , shared_from_this(), _1, _2));
-    }
+    void do_send();
 
     void handler_send( const boost::system::error_code &error_code
-                     , std::size_t sended_bytes)
-    {
-        if(!error_code)
-        {
-            do_run(false);
-        }
-        else
-        {
-            m_b_valid = false;
-            LOG_MESSAGE(std::string("TCP: Error send: ") + error_code.message());
-        }
-    }
+                     , std::size_t sended_bytes);
 
 private:
     boost::atomic<bool>     m_b_valid;
     io_service              m_io_service;
     boost::thread*          m_thread;
     ip::tcp::socket         m_socket;
-    net::gate_interface<T>* m_gate_receive;
-    net::gate_interface<T>* m_gate_send;
-    T                       m_buffer;
+    tool::raw_data_queue    m_queue_receive;
+    tool::raw_data_queue    m_queue_send;
+    tool::raw_data          m_buffer;
 };
 
 
