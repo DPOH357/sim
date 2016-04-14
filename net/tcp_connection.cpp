@@ -166,7 +166,8 @@ void tcp_connection::handler_receive(const boost::system::error_code &error_code
 
 void tcp_connection::do_send()
 {
-    m_queue_send.front(m_buffer);
+    //m_queue_send.front(m_buffer);
+    m_queue_send.pop(m_buffer);
     m_socket.async_write_some( buffer(m_buffer.get_data_ptr(), sizeof(m_buffer.get_data_size())),
                                boost::bind(&net::tcp_connection::handler_send
                                            , shared_from_this(), _1, _2));

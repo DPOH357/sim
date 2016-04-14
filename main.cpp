@@ -72,8 +72,6 @@ struct test_tcp_message
 
 void test_tcp_connection()
 {
-    boost::asio::io_service io_service;
-
     std::cout << "*** TCP connection testing ***" << std::endl;
     std::cout << "Select mode:" << std::endl;
     std::cout << "1. Server" << std::endl;
@@ -82,7 +80,6 @@ void test_tcp_connection()
     int mode;
     std::cin >> mode;
 
-    const unsigned short buffer_messages_size(1024);
     const unsigned short port(9999);
 
     boost::shared_ptr<sim::net::tcp_connection> connection;
@@ -103,10 +100,20 @@ void test_tcp_connection()
 
         char str[32];
         std::cout << "Enter server address" << std::endl;
+        std::cin >> str;
 
-        boost::asio::ip::address address(boost::asio::ip::address::from_string(str));
+        boost::system::error_code error_code;
+        boost::asio::ip::address address(boost::asio::ip::address::from_string(str, error_code));
 
-        connection = sim::net::tcp_connection::create_connect(address, port, sizeof(test_tcp_message));
+        if(!error_code)
+        {
+            connection = sim::net::tcp_connection::create_connect(address, port, sizeof(test_tcp_message));
+        }
+        else
+        {
+            LOG_MESSAGE(std::string("Error convert address: ") + error_code.message());
+            return;
+        }
     }
     break;
 
