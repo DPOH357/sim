@@ -38,7 +38,9 @@ public:
     bool valid() const;
 
 private:
-    void run();
+    void run(ip::address address, unsigned int port);
+
+    void run(unsigned int port);
 
     void do_run(bool b_send_priority);
 
