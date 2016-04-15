@@ -87,12 +87,14 @@ void tcp_connection::do_run(bool b_send_priority)
             if(!m_queue_send.is_empty())
             {
                 do_send();
+                return;
             }
             else
             {
                 if(m_socket.available() >= m_buffer.get_data_size())
                 {
                     do_receive();
+                    return;
                 }
             }
         }
@@ -101,12 +103,14 @@ void tcp_connection::do_run(bool b_send_priority)
             if(m_socket.available() >= m_buffer.get_data_size())
             {
                 do_receive();
+                return;
             }
             else
             {
                 if(!m_queue_send.is_empty())
                 {
                     do_send();
+                    return;
                 }
             }
         }
@@ -126,6 +130,7 @@ void tcp_connection::handler_accept(const boost::system::error_code &error_code)
     }
     else
     {
+        LOG_MESSAGE(std::string("TCP: Accept valid."));
         do_run(false);
     }
 }
@@ -139,13 +144,15 @@ void tcp_connection::handler_connect(const boost::system::error_code &error_code
     }
     else
     {
+        LOG_MESSAGE(std::string("TCP: Connection valid."));
         do_run(false);
     }
 }
 
 void tcp_connection::do_receive()
 {
-    m_socket.async_receive(buffer(m_buffer.get_data_ptr(), sizeof(m_buffer.get_data_size())),
+    LOG_MESSAGE(std::string("TCP: Do receive."));
+    m_socket.async_receive(buffer(m_buffer.get_data_ptr(), m_buffer.get_data_size()),
                            boost::bind(&net::tcp_connection::handler_receive
                                        , shared_from_this(), _1, _2));
 }
@@ -154,6 +161,7 @@ void tcp_connection::handler_receive(const boost::system::error_code &error_code
 {
     if(!error_code)
     {
+        LOG_MESSAGE(std::string("TCP: Receive complete."));
         m_queue_receive.push(m_buffer);
         do_run(true);
     }
@@ -166,10 +174,10 @@ void tcp_connection::handler_receive(const boost::system::error_code &error_code
 
 void tcp_connection::do_send()
 {
-    //m_queue_send.front(m_buffer);
-    m_queue_send.pop(m_buffer);
-    m_socket.async_write_some( buffer(m_buffer.get_data_ptr(), sizeof(m_buffer.get_data_size())),
-                               boost::bind(&net::tcp_connection::handler_send
+    LOG_MESSAGE(std::string("TCP: Do send."));
+    m_queue_send.front(m_buffer);
+    m_socket.async_send( buffer(m_buffer.get_data_ptr(), m_buffer.get_data_size()),
+                                boost::bind(&net::tcp_connection::handler_send
                                            , shared_from_this(), _1, _2));
 }
 
@@ -177,6 +185,8 @@ void tcp_connection::handler_send(const boost::system::error_code &error_code, s
 {
     if(!error_code)
     {
+        LOG_MESSAGE(std::string("TCP: Send complete."));
+        m_queue_send.pop();
         do_run(false);
     }
     else

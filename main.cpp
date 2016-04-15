@@ -68,10 +68,33 @@ struct test_tcp_message
     {
         strcpy(text, mesage.text);
     }
+
+    void operator=(const test_tcp_message& mesage)
+    {
+        strcpy(text, mesage.text);
+    }
+
+    void operator=(const char _text[])
+    {
+        strcpy(text, _text);
+    }
 };
 
 void test_tcp_connection()
 {
+    char str[32] = "Hello";
+    test_tcp_message tcp_message;
+    tcp_message = str;
+
+    sim::tool::raw_data rd;
+
+    rd = tcp_message;
+
+    test_tcp_message tcp_message2;
+    rd.get_data(tcp_message2);
+    std::cout << tcp_message2.text << std::endl;
+    std::cout << rd.get_data_size() << std::endl;
+
     std::cout << "*** TCP connection testing ***" << std::endl;
     std::cout << "Select mode:" << std::endl;
     std::cout << "1. Server" << std::endl;
@@ -98,12 +121,8 @@ void test_tcp_connection()
     {
         std::cout << "-Client-" << std::endl;
 
-        char str[32];
-        std::cout << "Enter server address" << std::endl;
-        std::cin >> str;
-
         boost::system::error_code error_code;
-        boost::asio::ip::address address(boost::asio::ip::address::from_string(str, error_code));
+        boost::asio::ip::address address(boost::asio::ip::address::from_string("127.0.0.1", error_code));
 
         if(!error_code)
         {

@@ -46,7 +46,9 @@ public:
         : m_data_size(sizeof(T))
     {
         m_data_ptr = new char[sizeof(T)];
-        std::memcpy(m_data_ptr, &data, sizeof(T));
+
+        T* data_ptr = reinterpret_cast<T*>(m_data_ptr);
+        *data_ptr = data;
     }
 
     ~raw_data();
@@ -113,6 +115,7 @@ public:
     void push(const tool::raw_data& raw_data);
     bool front(tool::raw_data& raw_data);
     bool pop(tool::raw_data& raw_data);
+    void pop();
 
     bool is_empty();
 

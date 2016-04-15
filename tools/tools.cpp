@@ -221,6 +221,23 @@ bool sim::tool::raw_data_queue::pop(sim::tool::raw_data &raw_data)
     return false;
 }
 
+void sim::tool::raw_data_queue::pop()
+{
+    boost::lock_guard< boost::mutex > locker(m_mutex);
+
+    raw_data_queue::data* data( m_list[m_pos_front] );
+    if(data->is_valid())
+    {
+        data->reset_data();
+
+        ++m_pos_front;
+        if(m_pos_front >= m_list.size())
+        {
+            m_pos_front = 0;
+        }
+    }
+}
+
 bool sim::tool::raw_data_queue::is_empty()
 {
     boost::lock_guard< boost::mutex > locker(m_mutex);
