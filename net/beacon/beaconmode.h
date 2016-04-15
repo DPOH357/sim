@@ -5,7 +5,7 @@
 #include "net/broadcastreceiver.hpp"
 #include "beaconmessage.h"
 #include "beaconmode.h"
-#include <tools/tools.h>
+#include <base/timer.h>
 
 #include <unordered_map>
 
@@ -46,7 +46,7 @@ private:
     boost::shared_ptr<net::broadcast_sender<sim::beacon::message>>   m_sender;
     boost::shared_ptr<net::broadcast_receiver<sim::beacon::message>> m_receiver;
 
-    sim::tool::timer m_timer;
+    sim::base::timer m_timer;
 
     const beacon::data m_beacon_data;
 
@@ -71,8 +71,8 @@ private:
     boost::shared_ptr<net::broadcast_sender<sim::beacon::message>>   m_sender;
     boost::shared_ptr<net::broadcast_receiver<sim::beacon::message>> m_receiver;
 
-    sim::tool::timer        m_timer;
-    sim::tool::timer        m_timer_main;
+    sim::base::timer        m_timer;
+    sim::base::timer        m_timer_main;
     beacon::beacons_list    m_beacons_list;
     unsigned int m_last_response_message_mark;
 };

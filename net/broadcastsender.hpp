@@ -1,7 +1,6 @@
 #ifndef BROADCAST_SENDER_H
 #define BROADCAST_SENDER_H
 
-#include "tools/tools.h"
 #include <boost/enable_shared_from_this.hpp>
 #include <boost/bind.hpp>
 #include <boost/thread.hpp>

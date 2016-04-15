@@ -43,12 +43,12 @@ boost::shared_ptr<tcp_connection> tcp_connection::create_connect(ip::address add
     return tcp_connection;
 }
 
-bool tcp_connection::get_message(tool::raw_data &raw_data)
+bool tcp_connection::get_message(base::raw_data &raw_data)
 {
     return m_queue_receive.pop(raw_data);
 }
 
-void tcp_connection::send_message(const tool::raw_data &raw_data)
+void tcp_connection::send_message(const base::raw_data &raw_data)
 {
     m_queue_send.push(raw_data);
 }

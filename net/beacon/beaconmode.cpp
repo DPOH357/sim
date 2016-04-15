@@ -1,6 +1,6 @@
 #include "beaconmode.h"
 
-#include"tools/tools.h"
+#include <base/tools.h>
 
 sim::beacon::mode_authen::mode_authen(
         boost::shared_ptr<net::broadcast_sender<sim::beacon::message> > sender,
@@ -61,7 +61,7 @@ bool sim::beacon::mode_authen::run()
         }
         else
         {
-            m_last_response_message_mark = (unsigned int)sim::tool::random(1, 0xFFFFFFFF);
+            m_last_response_message_mark = (unsigned int)sim::base::random(1, 0xFFFFFFFF);
             sim::beacon::message request_message(m_last_response_message_mark);
             m_sender->send(request_message);
 
@@ -122,7 +122,7 @@ bool sim::beacon::mode_default::run()
 
         if(bRequest)
         {
-            m_last_response_message_mark = sim::tool::random(1, 0xFFFFFFFF);
+            m_last_response_message_mark = sim::base::random(1, 0xFFFFFFFF);
             sim::beacon::message response_message(m_last_response_message_mark, m_beacon_data);
             m_sender->send(response_message);
             LOG_MESSAGE("Send response message");

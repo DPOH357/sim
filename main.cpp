@@ -3,7 +3,7 @@
 #include "net/beacon/beacon.h"
 #include "net/tcp_connection.hpp"
 
-#include "tools/tools.h"
+#include <base/raw_data.h>
 
 void test_net_beacon()
 {
@@ -82,19 +82,6 @@ struct test_tcp_message
 
 void test_tcp_connection()
 {
-    char str[32] = "Hello";
-    test_tcp_message tcp_message;
-    tcp_message = str;
-
-    sim::tool::raw_data rd;
-
-    rd = tcp_message;
-
-    test_tcp_message tcp_message2;
-    rd.get_data(tcp_message2);
-    std::cout << tcp_message2.text << std::endl;
-    std::cout << rd.get_data_size() << std::endl;
-
     std::cout << "*** TCP connection testing ***" << std::endl;
     std::cout << "Select mode:" << std::endl;
     std::cout << "1. Server" << std::endl;
@@ -140,7 +127,7 @@ void test_tcp_connection()
         return;
     }
 
-    sim::tool::raw_data raw_data(sizeof(test_tcp_message));
+    sim::base::raw_data raw_data(sizeof(test_tcp_message));
     test_tcp_message message;
 
     int command(-1);

@@ -9,7 +9,7 @@
 
 #include "gate.hpp"
 
-#include "tools/tools.h"
+#include <base/raw_data_queue.h>
 
 
 namespace sim
@@ -31,9 +31,9 @@ public:
 
     static boost::shared_ptr<net::tcp_connection> create_connect(ip::address address, unsigned int port, size_t data_size);
 
-    bool get_message(tool::raw_data& raw_data);
+    bool get_message(base::raw_data& raw_data);
 
-    void send_message(const tool::raw_data& raw_data);
+    void send_message(const base::raw_data& raw_data);
 
     bool valid() const;
 
@@ -63,9 +63,9 @@ private:
     io_service              m_io_service;
     boost::thread*          m_thread;
     ip::tcp::socket         m_socket;
-    tool::raw_data_queue    m_queue_receive;
-    tool::raw_data_queue    m_queue_send;
-    tool::raw_data          m_buffer;
+    base::raw_data_queue    m_queue_receive;
+    base::raw_data_queue    m_queue_send;
+    base::raw_data          m_buffer;
 };
 
 
