@@ -1,4 +1,4 @@
-#include "tcp_connection.hpp"
+#include "tcp_connection.h"
 
 namespace sim
 {
