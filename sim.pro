@@ -22,12 +22,13 @@ HEADERS += \
     net/beacon/beaconmode.h \
     net/broadcastreceiver.hpp \
     net/broadcastsender.hpp \
-    net/tcp_connection.hpp \
     net/gate.hpp \
     base/timer.h \
     base/raw_data.h \
     base/raw_data_queue.h \
-    base/tools.h
+    base/tools.h \
+    net/broadcast.h \
+    net/tcp_connection.h
 
 SOURCES += \
     main.cpp \
@@ -37,4 +38,5 @@ SOURCES += \
     base/timer.cpp \
     base/raw_data.cpp \
     base/raw_data_queue.cpp \
-    base/tools.cpp
+    base/tools.cpp \
+    net/broadcast.cpp
