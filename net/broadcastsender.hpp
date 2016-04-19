@@ -84,7 +84,7 @@ private:
 
         if(error_code)
         {
-            LOG_MESSAGE(std::string("UDP: Error sending: ") + error_code.message());
+            base::log::message(std::string("UDP: Error sending: ") + error_code.message());
         }
 
         do_send();

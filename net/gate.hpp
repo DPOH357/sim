@@ -9,9 +9,6 @@ namespace sim
     namespace net
     {
 
-#define LOG_MESSAGE(x) std::cout << x << std::endl;
-
-
 template <class T>
 class gate_interface
 {
@@ -65,7 +62,7 @@ public:
         if(m_queue.size() >= m_queue_max_size)
         {
             m_queue.pop();
-            LOG_MESSAGE(std::string("Queue is full."));
+            base::log::message(std::string("Queue is full."));
         }
 
         m_queue.push(val);

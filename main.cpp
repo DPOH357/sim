@@ -1,9 +1,10 @@
 #include <iostream>
 
 #include "net/beacon/beacon.h"
-#include "net/tcp_connection.hpp"
+#include "net/tcp_connection.h"
 
 #include <base/raw_data.h>
+#include <base/tools.h>
 
 void test_net_beacon()
 {
@@ -117,7 +118,7 @@ void test_tcp_connection()
         }
         else
         {
-            LOG_MESSAGE(std::string("Error convert address: ") + error_code.message());
+            sim::base::log::message(std::string("Error convert address: ") + error_code.message());
             return;
         }
     }

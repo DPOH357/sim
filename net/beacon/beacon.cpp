@@ -1,6 +1,7 @@
 #include "beacon.h"
 
 #include "beaconmode.h"
+#include <base/tools.h>
 
 sim::beacon::detector::detector(char name[], boost::asio::ip::address address, unsigned int port)
     : m_mode(nullptr)
@@ -45,14 +46,14 @@ void sim::beacon::detector::run()
                 delete m_mode;
                 beacon::data beacon_data(m_id, m_name, m_address);
                 m_mode = new sim::beacon::mode_default(m_sender, m_receiver, beacon_data);
-                LOG_MESSAGE("Start default mode");
+                base::log::message("Start default mode");
             }
         }
         else
         {
             delete m_mode;
             m_mode = new sim::beacon::mode_authen(m_sender, m_receiver);
-            LOG_MESSAGE("Start authentication mode");
+            base::log::message("Start authentication mode");
         }
     }
 }

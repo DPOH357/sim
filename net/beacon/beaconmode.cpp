@@ -35,19 +35,19 @@ bool sim::beacon::mode_authen::run()
                 case sim::beacon::message_type::Request:
                     {
                         bRequest = true;
-                        LOG_MESSAGE("Receive request message");
+                        base::log::message("Receive request message");
                     }
                     break;
 
                 case sim::beacon::message_type::Response:
                     {
                         m_beacons_list.insert( beacon_data_pair(receiving_message.data.id, receiving_message.data) );
-                        LOG_MESSAGE(std::string("Receive response message, busy id ") + std::to_string(receiving_message.data.id));
+                        base::log::message(std::string("Receive response message, busy id ") + std::to_string(receiving_message.data.id));
                     }
                     break;
 
                 case sim::beacon::message_type::Invalid:
-                    LOG_MESSAGE("Receive invalid message");
+                    base::log::message("Receive invalid message");
                 default:
                     break;
                 }
@@ -57,7 +57,7 @@ bool sim::beacon::mode_authen::run()
         if(bRequest)
         {
             m_timer_main.start(mc_timer_main_duration);
-            LOG_MESSAGE("Timeout");
+            base::log::message("Timeout");
         }
         else
         {
@@ -65,7 +65,7 @@ bool sim::beacon::mode_authen::run()
             sim::beacon::message request_message(m_last_response_message_mark);
             m_sender->send(request_message);
 
-            LOG_MESSAGE("Send request");
+            base::log::message("Send request");
         }
 
         m_timer.start(mc_timer_duration);
@@ -125,7 +125,7 @@ bool sim::beacon::mode_default::run()
             m_last_response_message_mark = sim::base::random(1, 0xFFFFFFFF);
             sim::beacon::message response_message(m_last_response_message_mark, m_beacon_data);
             m_sender->send(response_message);
-            LOG_MESSAGE("Send response message");
+            base::log::message("Send response message");
         }
 
         m_timer.start(mc_time_duration);
