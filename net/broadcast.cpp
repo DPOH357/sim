@@ -8,8 +8,8 @@ sim::net::broadcast::broadcast(unsigned int port, size_t data_size_default)
     , m_queue_send(data_size_default)
     , m_buffer(data_size_default)
 {
-  m_socket.set_option( ip::udp::socket::reuse_address(true) );
-  m_socket.set_option( socket_base::broadcast(true) );
+    m_socket.set_option( ip::udp::socket::reuse_address(true) );
+    m_socket.set_option( socket_base::broadcast(true) );
 }
 
 sim::net::broadcast::~broadcast()
@@ -51,7 +51,7 @@ void sim::net::broadcast::do_send()
     m_socket.async_send_to( buffer(m_buffer.get_data_ptr(), m_buffer.get_data_size()),
                             m_endpoint,
                             boost::bind( &net::broadcast::handler_send
-                                         , shared_from_this(), _1, _2) );
+                                       , shared_from_this(), _1, _2) );
 }
 
 void sim::net::broadcast::handler_send(const boost::system::error_code &error_code, size_t send_bytes)

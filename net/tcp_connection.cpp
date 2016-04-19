@@ -63,8 +63,8 @@ bool tcp_connection::valid() const
 void tcp_connection::run(ip::address address, unsigned int port)
 {
     ip::tcp::endpoint endpoint(address, port);
-    m_socket.async_connect(endpoint,
-                           boost::bind( &net::tcp_connection::handler_connect, shared_from_this(), _1) );
+    m_socket.async_connect( endpoint
+                          , boost::bind( &net::tcp_connection::handler_connect, shared_from_this(), _1) );
 
     m_io_service.run();
 }

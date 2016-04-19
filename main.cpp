@@ -1,6 +1,7 @@
 #include <iostream>
 
 #include "net/beacon/beacon.h"
+#include <net/broadcast.h>
 #include "net/tcp_connection.h"
 
 #include <base/raw_data.h>
@@ -50,27 +51,27 @@ void test_net_beacon()
     }
 }
 
-struct test_tcp_message
+struct test_message
 {
     enum { text_length = 64 };
     char text[text_length];
 
-    test_tcp_message()
+    test_message()
     {
         text[0] = 0;
     }
 
-    test_tcp_message( const char _text[])
+    test_message( const char _text[])
     {
         strcpy(text, _text);
     }
 
-    test_tcp_message(const test_tcp_message& mesage)
+    test_message(const test_message& mesage)
     {
         strcpy(text, mesage.text);
     }
 
-    void operator=(const test_tcp_message& mesage)
+    void operator=(const test_message& mesage)
     {
         strcpy(text, mesage.text);
     }
@@ -101,7 +102,7 @@ void test_tcp_connection()
     {
         std::cout << "-Server-" << std::endl;
 
-        connection = sim::net::tcp_connection::create_wait_connection(port, sizeof(test_tcp_message));
+        connection = sim::net::tcp_connection::create_wait_connection(port, sizeof(test_message));
     }
     break;
 
@@ -114,7 +115,7 @@ void test_tcp_connection()
 
         if(!error_code)
         {
-            connection = sim::net::tcp_connection::create_connect(address, port, sizeof(test_tcp_message));
+            connection = sim::net::tcp_connection::create_connect(address, port, sizeof(test_message));
         }
         else
         {
@@ -128,8 +129,8 @@ void test_tcp_connection()
         return;
     }
 
-    sim::base::raw_data raw_data(sizeof(test_tcp_message));
-    test_tcp_message message;
+    sim::base::raw_data raw_data(sizeof(test_message));
+    test_message message;
 
     int command(-1);
     while(command)
@@ -170,6 +171,60 @@ void test_tcp_connection()
     }
 }
 
+void test_broadcast()
+{
+    int mode = -1;
+
+    const unsigned int port(9999);
+
+    test_message message;
+
+    while(true)
+    {
+        std::cout << "Select mode" << std::endl;
+        std::cout << "1. Sender" << std::endl;
+        std::cout << "2. Receiver" << std::endl;
+        std::cout << "0. Exit" << std::endl;
+
+        std::cin >> mode;
+
+        switch(mode)
+        {
+        case 0: return;
+
+        case 1:
+        {
+            auto sender = sim::net::broadcast::create(port, sizeof(test_message));
+
+            while(true)
+            {
+                std::cout << "Message: ";
+                std::cin >> message.text;
+                std::cout << std::endl;
+
+                sender->send_message(message);
+            }
+        }
+        break;
+
+        case 2:
+        {
+            auto receiver = sim::net::broadcast_receiver<test_message>::create(port, new sim::net::gate_message<test_message>(12, 1));
+
+            while(true)
+            {
+                if(receiver->get_message(message))
+                {
+                    std::cout << message.text << std::endl;
+                }
+                boost::this_thread::sleep_for( boost::chrono::milliseconds(200) );
+            }
+        }
+        break;
+        }
+    }
+}
+
 int main(int argc, char* argv[])
 {
     (void)argc;
@@ -178,6 +233,7 @@ int main(int argc, char* argv[])
     std::cout << "Select test:" << std::endl;
     std::cout << "1. Net beacon" << std::endl;
     std::cout << "2. Net tcp connection" << std::endl;
+    std::cout << "3. Net broadcast" << std::endl;
 
     std::cout << std::endl;
     std::cout << "0. Exit" << std::endl;
@@ -193,6 +249,7 @@ int main(int argc, char* argv[])
         case 0: return 0;
         case 1: test_net_beacon(); return 0;
         case 2: test_tcp_connection(); return 0;
+        case 3: test_broadcast(); return 0;
         default: break;
         }
     }

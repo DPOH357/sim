@@ -33,7 +33,3 @@ int sim::base::random(int rangeMin, int rangeMax)
     return (rand() / (RAND_MAX + 1) \
         * (rangeMax - rangeMin) + rangeMin);
 }
-
-
-
-
