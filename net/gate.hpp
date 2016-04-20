@@ -4,6 +4,8 @@
 #include <queue>
 #include <boost/thread.hpp>
 
+#include <base/tools.h>
+
 namespace sim
 {
     namespace net
@@ -62,7 +64,7 @@ public:
         if(m_queue.size() >= m_queue_max_size)
         {
             m_queue.pop();
-            base::log::message(std::string("Queue is full."));
+            sim::base::log::message(sim::base::log::level::Info, std::string("Queue is full."));
         }
 
         m_queue.push(val);

@@ -28,20 +28,33 @@ public:
 
     static boost::shared_ptr<broadcast> create(unsigned int port, size_t data_size_default);
 
+    bool get_message(base::raw_data& raw_data);
+
     void send_message(const base::raw_data& raw_data);
 
 private:
     void run();
+
+    void do_run(bool b_send_priority);
+
+    void do_receive();
+
+    void handler_receive( const boost::system::error_code &error_code
+                        , std::size_t receive_bytes);
+
     void do_send();
+
     void handler_send( const boost::system::error_code &error_code
-                     , std::size_t send_bytes );
+                     , std::size_t sended_bytes);
 
 private:
+    boost::atomic<bool>     m_b_valid;
     io_service              m_io_service;
     boost::thread*          m_thread;
     ip::udp::socket         m_socket;
     ip::udp::endpoint       m_endpoint;
     base::raw_data_queue    m_queue_send;
+    base::raw_data_queue    m_queue_receive;
     base::raw_data          m_buffer;
 };
 

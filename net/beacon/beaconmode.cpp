@@ -2,6 +2,14 @@
 
 #include <base/tools.h>
 
+namespace sim
+{
+    namespace beacon
+    {
+
+
+using namespace sim::base;
+
 sim::beacon::mode_authen::mode_authen(
         boost::shared_ptr<net::broadcast_sender<sim::beacon::message> > sender,
         boost::shared_ptr<net::broadcast_receiver<sim::beacon::message> > receiver)
@@ -35,19 +43,19 @@ bool sim::beacon::mode_authen::run()
                 case sim::beacon::message_type::Request:
                     {
                         bRequest = true;
-                        base::log::message("Receive request message");
+                        log::message(log::level::Info, "Receive request message");
                     }
                     break;
 
                 case sim::beacon::message_type::Response:
                     {
                         m_beacons_list.insert( beacon_data_pair(receiving_message.data.id, receiving_message.data) );
-                        base::log::message(std::string("Receive response message, busy id ") + std::to_string(receiving_message.data.id));
+                        log::message(log::level::Info, std::string("Receive response message, busy id ") + std::to_string(receiving_message.data.id));
                     }
                     break;
 
                 case sim::beacon::message_type::Invalid:
-                    base::log::message("Receive invalid message");
+                    log::message(log::level::Info, "Receive invalid message");
                 default:
                     break;
                 }
@@ -57,7 +65,7 @@ bool sim::beacon::mode_authen::run()
         if(bRequest)
         {
             m_timer_main.start(mc_timer_main_duration);
-            base::log::message("Timeout");
+            log::message(log::level::Info, "Timeout");
         }
         else
         {
@@ -65,7 +73,7 @@ bool sim::beacon::mode_authen::run()
             sim::beacon::message request_message(m_last_response_message_mark);
             m_sender->send(request_message);
 
-            base::log::message("Send request");
+            log::message(log::level::Info, "Send request");
         }
 
         m_timer.start(mc_timer_duration);
@@ -125,10 +133,14 @@ bool sim::beacon::mode_default::run()
             m_last_response_message_mark = sim::base::random(1, 0xFFFFFFFF);
             sim::beacon::message response_message(m_last_response_message_mark, m_beacon_data);
             m_sender->send(response_message);
-            base::log::message("Send response message");
+            log::message(log::level::Info, "Send response message");
         }
 
         m_timer.start(mc_time_duration);
     }
     return true;
 }
+
+
+    } //namespace beacon
+} // namespace sim

@@ -7,6 +7,8 @@ namespace sim
     namespace net
     {
 
+using namespace sim::base;
+
 tcp_connection::tcp_connection(size_t data_size)
     : m_socket(m_io_service)
     , m_queue_receive(data_size)
@@ -125,35 +127,36 @@ void tcp_connection::handler_accept(const boost::system::error_code &error_code)
     {
         m_b_valid = false;
 
-        base::log::message( std::string("TCP: Error accept (")
-                   + std::to_string(error_code.value())
-                   + std::string("): ")
-                   + error_code.message());
+        log::message( log::level::Info,
+                      std::string("TCP: Error accept (")
+                    + std::to_string(error_code.value())
+                    + std::string("): ")
+                    + error_code.message());
     }
     else
     {
-        base::log::message(std::string("TCP: Accept valid."));
+        log::message(log::level::Info, std::string("TCP: Accept valid."));
         do_run(false);
     }
 }
 
 void tcp_connection::handler_connect(const boost::system::error_code &error_code)
 {
-    if(error_code)
+    if(!error_code)
     {
-        m_b_valid = false;
-        base::log::message(std::string("TCP: Error connect: ") + error_code.message());
+        log::message(log::level::Info, std::string("TCP: Connection valid."));
+        do_run(false);
     }
     else
     {
-        base::log::message(std::string("TCP: Connection valid."));
-        do_run(false);
+        m_b_valid = false;
+        log::message(log::level::Info, std::string("TCP: Error connect: ") + error_code.message());
     }
 }
 
 void tcp_connection::do_receive()
 {
-    base::log::message(std::string("TCP: Do receive."));
+    log::message(log::level::Info, std::string("TCP: Do receive."));
     m_socket.async_receive(buffer(m_buffer.get_data_ptr(), m_buffer.get_data_size()),
                            boost::bind(&net::tcp_connection::handler_receive
                                        , shared_from_this(), _1, _2));
@@ -161,40 +164,48 @@ void tcp_connection::do_receive()
 
 void tcp_connection::handler_receive(const boost::system::error_code &error_code, size_t receive_bytes)
 {
+    (void)receive_bytes;
+
     if(!error_code)
     {
-        base::log::message(std::string("TCP: Receive complete."));
+        log::message(log::level::Info, std::string("TCP: Receive complete."));
         m_queue_receive.push(m_buffer);
         do_run(true);
     }
     else
     {
         m_b_valid = false;
-        base::log::message(std::string("TCP: Error receive: ") + error_code.message());
+        log::message(log::level::Info, std::string("TCP: Error receive: ") + error_code.message());
     }
 }
 
 void tcp_connection::do_send()
 {
-    base::log::message(std::string("TCP: Do send."));
-    m_queue_send.front(m_buffer);
-    m_socket.async_send( buffer(m_buffer.get_data_ptr(), m_buffer.get_data_size()),
-                                boost::bind(&net::tcp_connection::handler_send
-                                           , shared_from_this(), _1, _2));
+    log::message(log::level::Info, std::string("TCP: Do send."));
+    if(m_queue_send.front(m_buffer))
+    {
+        m_socket.async_send( buffer(m_buffer.get_data_ptr(), m_buffer.get_data_size()),
+                             boost::bind(&net::tcp_connection::handler_send
+                                         , shared_from_this(), _1, _2));
+    }
+    else
+    {
+        do_run(false);
+    }
 }
 
 void tcp_connection::handler_send(const boost::system::error_code &error_code, size_t sended_bytes)
 {
     if(!error_code)
     {
-        base::log::message(std::string("TCP: Send complete."));
+        log::message(log::level::Info, std::string("TCP: Send complete."));
         m_queue_send.pop();
         do_run(false);
     }
     else
     {
         m_b_valid = false;
-        base::log::message(std::string("TCP: Error send: ") + error_code.message());
+        log::message(log::level::Info, std::string("TCP: Error send: ") + error_code.message());
     }
 }
 

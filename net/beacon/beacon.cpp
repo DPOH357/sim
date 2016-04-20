@@ -3,7 +3,14 @@
 #include "beaconmode.h"
 #include <base/tools.h>
 
-sim::beacon::detector::detector(char name[], boost::asio::ip::address address, unsigned int port)
+namespace sim
+{
+    namespace beacon
+    {
+
+using namespace sim::base;
+
+beacon::detector::detector(char name[], boost::asio::ip::address address, unsigned int port)
     : m_mode(nullptr)
     , m_id(0)
     , m_address(address)
@@ -28,12 +35,12 @@ sim::beacon::detector::detector(char name[], boost::asio::ip::address address, u
     m_mode = new sim::beacon::mode_authen(m_sender, m_receiver);
 }
 
-sim::beacon::detector::~detector()
+beacon::detector::~detector()
 {
     delete m_mode;
 }
 
-void sim::beacon::detector::run()
+void beacon::detector::run()
 {
     if(!m_mode->run())
     {
@@ -46,14 +53,18 @@ void sim::beacon::detector::run()
                 delete m_mode;
                 beacon::data beacon_data(m_id, m_name, m_address);
                 m_mode = new sim::beacon::mode_default(m_sender, m_receiver, beacon_data);
-                base::log::message("Start default mode");
+                log::message(log::level::Info, "Start default mode");
             }
         }
         else
         {
             delete m_mode;
             m_mode = new sim::beacon::mode_authen(m_sender, m_receiver);
-            base::log::message("Start authentication mode");
+            log::message(log::level::Info, "Start authentication mode");
         }
     }
 }
+
+
+    } // namespace beacon
+} // namespace sim

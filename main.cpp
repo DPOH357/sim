@@ -119,7 +119,7 @@ void test_tcp_connection()
         }
         else
         {
-            sim::base::log::message(std::string("Error convert address: ") + error_code.message());
+            sim::base::log::message(sim::base::log::level::Info, std::string("Error convert address: ") + error_code.message());
             return;
         }
     }
@@ -177,7 +177,7 @@ void test_broadcast()
 
     const unsigned int port(9999);
 
-    test_message message;
+    sim::base::raw_data data(sizeof(test_message));
 
     while(true)
     {
@@ -188,33 +188,38 @@ void test_broadcast()
 
         std::cin >> mode;
 
+        auto udp = sim::net::broadcast::create(port, sizeof(test_message));
+
         switch(mode)
         {
         case 0: return;
 
         case 1:
         {
-            auto sender = sim::net::broadcast::create(port, sizeof(test_message));
-
             while(true)
             {
+                test_message message;
+
                 std::cout << "Message: ";
                 std::cin >> message.text;
                 std::cout << std::endl;
 
-                sender->send_message(message);
+                data = message;
+
+                udp->send_message(data);
             }
         }
         break;
 
         case 2:
         {
-            auto receiver = sim::net::broadcast_receiver<test_message>::create(port, new sim::net::gate_message<test_message>(12, 1));
-
             while(true)
             {
-                if(receiver->get_message(message))
+                if(udp->get_message(data))
                 {
+                    test_message message;
+                    data.get_data(message);
+
                     std::cout << message.text << std::endl;
                 }
                 boost::this_thread::sleep_for( boost::chrono::milliseconds(200) );
@@ -229,6 +234,8 @@ int main(int argc, char* argv[])
 {
     (void)argc;
     (void)argv;
+
+    sim::base::log::set_log_level( sim::base::log::level::Info );
 
     std::cout << "Select test:" << std::endl;
     std::cout << "1. Net beacon" << std::endl;
