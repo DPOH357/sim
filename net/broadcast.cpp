@@ -12,7 +12,7 @@ using namespace sim::base;
 
 net::broadcast::broadcast(unsigned int port, size_t data_size_default)
     : m_b_valid(true)
-    , m_socket( m_io_service, ip::udp::endpoint(ip::udp::v4(), 0) )
+    , m_socket( m_io_service, ip::udp::endpoint(ip::udp::v4(), port) )
     , m_endpoint( ip::address_v4::broadcast(), port )
     , m_queue_send(data_size_default)
     , m_queue_receive(data_size_default)
@@ -97,9 +97,9 @@ void net::broadcast::do_run(bool b_send_priority)
 
 void net::broadcast::do_receive()
 {
-    ip::udp::endpoint endpoint;
-    m_socket.async_receive_from( buffer(m_buffer.get_data_ptr(), m_buffer.get_data_size()),
-                                 endpoint,
+    log::message(log::level::Info, std::string("UDP: Do receive."));
+
+    m_socket.async_receive( buffer(m_buffer.get_data_ptr(), m_buffer.get_data_size()),
                                  boost::bind( &net::broadcast::handler_receive,
                                               shared_from_this(), _1, _2) );
 }
