@@ -1,6 +1,7 @@
 #ifndef TOOLS_H
 #define TOOLS_H
 
+#include <export.h>
 #include <string>
 #include <functional>
 
@@ -10,9 +11,9 @@ namespace sim
     {
 
 
-void log_function_default(const std::string& text);
+void SIMLIB_API log_function_default(const std::string& text);
 
-class log
+class SIMLIB_API log
 {
 public:
 
@@ -34,7 +35,7 @@ private:
 
 //-----------------------------------------------------------------------------
 
-int random(int rangeMin, int rangeMax);
+int SIMLIB_API random(int rangeMin, int rangeMax);
 
     } // namespace base
 } // namespace sim

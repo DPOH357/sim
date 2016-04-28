@@ -1,6 +1,7 @@
 #ifndef SIM_QUEUE_H
 #define SIM_QUEUE_H
 
+#include <export.h>
 #include <boost/thread.hpp>
 #include <vector>
 
@@ -10,7 +11,7 @@ namespace sim
     {
 
 template <class T>
-struct queue_data
+struct SIMLIB_API queue_data
 {
     queue_data()
         : m_b_valid(false)
@@ -50,7 +51,7 @@ private:
 };
 
 template <class T>
-class queue
+class SIMLIB_API queue
 {
 public:
     queue(unsigned int length)

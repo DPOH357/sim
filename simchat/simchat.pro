@@ -9,7 +9,8 @@ TARGET = simchat
 
 win32: INCLUDEPATH += C:/boost_1_58_0/
 unix:  INCLUDEPATH += /usr/local/
-INCLUDEPATH += $$PWD/..
+INCLUDEPATH += $$PWD
+INCLUDEPATH += $$PWD/../
 
 win32: LIBS += -LC:/boost_1_58_0/lib64-msvc-11.0 \
         -llibboost_thread-vc110-mt-gd-1_58 \
@@ -18,6 +19,8 @@ win32: LIBS += -LC:/boost_1_58_0/lib64-msvc-11.0 \
 unix:  LIBS +=  -L /usr/local/lib \
                 -lboost_thread \
                 -lboost_system
+
+LIBS += -lsim$${POST}
 
 HEADERS += \
     mainwindow.h \

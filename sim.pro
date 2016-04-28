@@ -1,4 +1,8 @@
-TEMPLATE = app
+TEMPLATE = lib
+TARGET = sim
+
+DEFINES += SIM_LIB
+
 CONFIG += console
 CONFIG -= app_bundle
 CONFIG -= qt
@@ -8,15 +12,16 @@ win32: INCLUDEPATH += C:/boost_1_58_0/
 unix:  INCLUDEPATH += /usr/local/
 INCLUDEPATH += $$PWD
 
-win32: LIBS += -LC:/boost_1_58_0/lib64-msvc-11.0 \
-        -llibboost_thread-vc110-mt-gd-1_58 \
-        -llibboost_system-vc110-mt-gd-1_58
+win32: LIBS +=  -LC:/boost_1_58_0/lib64-msvc-11.0 \
+                -llibboost_thread-vc110-mt-gd-1_58 \
+                -llibboost_system-vc110-mt-gd-1_58
 
 unix:  LIBS +=  -L /usr/local/lib \
                 -lboost_thread \
                 -lboost_system
 
 HEADERS += \
+    export.h \
     net/beacon/beacon.h \
     net/beacon/beaconmessage.h \
     net/beacon/beaconmode.h \
@@ -31,7 +36,6 @@ HEADERS += \
     base/queue.hpp
 
 SOURCES += \
-    main.cpp \
     net/beacon/beacon.cpp \
     net/beacon/beaconmode.cpp \
     net/tcp_connection.cpp \

@@ -1,6 +1,7 @@
 #ifndef TIMER_H
 #define TIMER_H
 
+#include <export.h>
 #include <boost/date_time/posix_time/posix_time.hpp>
 
 namespace sim
@@ -9,7 +10,7 @@ namespace sim
     {
 
 
-class timer
+class SIMLIB_API timer
 {
 public:
     timer();

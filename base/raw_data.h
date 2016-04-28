@@ -1,13 +1,15 @@
 #ifndef RAW_DATA_H
 #define RAW_DATA_H
 
+#include <export.h>
+
 namespace sim
 {
     namespace base
     {
 
 
-class raw_data
+class SIMLIB_API raw_data
 {
 public:
     raw_data();
