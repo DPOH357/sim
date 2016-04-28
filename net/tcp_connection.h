@@ -9,7 +9,8 @@
 
 #include "gate.hpp"
 
-#include <base/raw_data_queue.h>
+#include <base/raw_data.h>
+#include <base/queue.hpp>
 
 
 namespace sim
@@ -63,8 +64,8 @@ private:
     io_service              m_io_service;
     boost::thread*          m_thread;
     ip::tcp::socket         m_socket;
-    base::raw_data_queue    m_queue_receive;
-    base::raw_data_queue    m_queue_send;
+    base::queue<base::raw_data>    m_queue_receive;
+    base::queue<base::raw_data>    m_queue_send;
     base::raw_data          m_buffer;
 };
 

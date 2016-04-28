@@ -161,7 +161,8 @@ void test_tcp_connection()
             std::cout << std::endl << "Message: ";
             std::cin >> message.text;
 
-            connection->send_message(message);
+            raw_data.set(message);
+            connection->send_message(raw_data);
         }
         break;
 
@@ -188,7 +189,7 @@ void test_broadcast()
 
         std::cin >> mode;
 
-        auto udp = sim::net::broadcast::create(port, sizeof(test_message));
+        auto udp = sim::net::broadcast::create(port);
 
         switch(mode)
         {

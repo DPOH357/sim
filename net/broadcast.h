@@ -7,7 +7,8 @@
 #include <boost/atomic.hpp>
 #include <boost/asio.hpp>
 
-#include <base/raw_data_queue.h>
+#include <base/raw_data.h>
+#include <base/queue.hpp>
 
 namespace sim
 {
@@ -17,18 +18,19 @@ namespace sim
 
 using namespace boost::asio;
 
-// as sender
 class broadcast : public boost::enable_shared_from_this<broadcast>
                 , public boost::noncopyable
 {
-    broadcast(unsigned int port, size_t data_size_default);
+    typedef std::pair<base::raw_data, ip::udp::endpoint> receive_data_pair;
+
+    broadcast(unsigned int port);
 
 public:
     ~broadcast();
 
-    static boost::shared_ptr<broadcast> create(unsigned int port, size_t data_size_default);
+    static boost::shared_ptr<broadcast> create(unsigned int port);
 
-    bool get_message(base::raw_data& raw_data);
+    bool get_message(base::raw_data& raw_data, ip::udp::endpoint* endpoint_sender_ptr = nullptr);
 
     void send_message(const base::raw_data& raw_data);
 
@@ -53,10 +55,16 @@ private:
     boost::thread*          m_thread;
     ip::udp::socket         m_socket;
     ip::udp::endpoint       m_endpoint;
-    base::raw_data_queue    m_queue_send;
-    base::raw_data_queue    m_queue_receive;
-    base::raw_data          m_buffer;
+    base::queue<base::raw_data>
+                            m_queue_send;
+    base::queue<receive_data_pair>
+                            m_queue_receive;
+
+    receive_data_pair       m_buffer;
+    receive_data_pair       m_tmp_receive_data_pair;
 };
+
+typedef boost::shared_ptr<broadcast> broadcast_ptr;
 
 
     } // namespace net

@@ -25,10 +25,10 @@ HEADERS += \
     net/gate.hpp \
     base/timer.h \
     base/raw_data.h \
-    base/raw_data_queue.h \
     base/tools.h \
     net/broadcast.h \
-    net/tcp_connection.h
+    net/tcp_connection.h \
+    base/queue.hpp
 
 SOURCES += \
     main.cpp \
@@ -37,6 +37,5 @@ SOURCES += \
     net/tcp_connection.cpp \
     base/timer.cpp \
     base/raw_data.cpp \
-    base/raw_data_queue.cpp \
     base/tools.cpp \
     net/broadcast.cpp

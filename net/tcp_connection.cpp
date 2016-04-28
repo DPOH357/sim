@@ -182,7 +182,7 @@ void tcp_connection::handler_receive(const boost::system::error_code &error_code
 void tcp_connection::do_send()
 {
     log::message(log::level::Info, std::string("TCP: Do send."));
-    if(m_queue_send.front(m_buffer))
+    if(m_queue_send.pop(m_buffer))
     {
         m_socket.async_send( buffer(m_buffer.get_data_ptr(), m_buffer.get_data_size()),
                              boost::bind(&net::tcp_connection::handler_send
@@ -199,7 +199,6 @@ void tcp_connection::handler_send(const boost::system::error_code &error_code, s
     if(!error_code)
     {
         log::message(log::level::Info, std::string("TCP: Send complete."));
-        m_queue_send.pop();
         do_run(false);
     }
     else

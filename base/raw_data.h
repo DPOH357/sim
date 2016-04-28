@@ -15,30 +15,22 @@ public:
     raw_data(const void* data_ptr, size_t data_size);
     raw_data(const raw_data& data);
 
-    template <class T>
-    raw_data(const T& data)
-        : m_data_size(sizeof(T))
-    {
-        m_data_ptr = new char[sizeof(T)];
-
-        T* data_ptr = reinterpret_cast<T*>(m_data_ptr);
-        *data_ptr = data;
-    }
-
     ~raw_data();
+
+    void        reserve(size_t size);
 
     void        set(const void* data_ptr, size_t data_size);
 
     template<class T>
-    void        set(const T& data) { set((void*)data, sizeof(T)); }
+    void        set(const T& data) { set(&data, sizeof(T)); }
 
     size_t      get_data_size() const;
     bool        get_data(void* data_ptr, size_t data_size) const;
 
     template<class T>
-    bool        get_data(T& data) const { return get_data((void*)&data, sizeof(T)); }
+    bool        get_data(T& data) const { return get_data(&data, sizeof(T)); }
 
-    void* get_data_ptr() const { return m_data_ptr; }
+    void* get_data_ptr() const { return m_memory_ptr; }
 
     void operator=(const base::raw_data& raw_data);
 
@@ -47,17 +39,18 @@ public:
     {
         if(m_data_size < sizeof(T))
         {
-            if(m_data_ptr)
-                delete [] m_data_ptr;
+            if(m_memory_ptr)
+                delete [] m_memory_ptr;
 
-            m_data_ptr = new char[sizeof(T)];
+            m_memory_ptr = new char[sizeof(T)];
         }
         m_data_size = sizeof(T);
-        std::memcpy(m_data_ptr, &data, m_data_size);
+        std::memcpy(m_memory_ptr, &data, m_data_size);
     }
 
 private:
-    void*   m_data_ptr;
+    size_t  m_memory_size;
+    void*   m_memory_ptr;
     size_t  m_data_size;
 };
 
