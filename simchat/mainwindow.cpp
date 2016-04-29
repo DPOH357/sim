@@ -36,11 +36,31 @@ void MainWindow::on_pushButton_LogIn_clicked()
         auto userListDetector = new UserListAgent(5555, name);
         m_agentsList.push_back(userListDetector);
 
+        connect(userListDetector, &UserListAgent::send_userIn, this, &MainWindow::slot_UserIn);
+        connect(userListDetector, &UserListAgent::send_userOut, this, &MainWindow::slot_UserOut);
 
         connect(&m_timer, &QTimer::timeout, this, &MainWindow::slot_timerTick);
         m_timer.setInterval(200);
         m_timer.start();
 
         ui->stackedWidget->setCurrentIndex(1);
+    }
+}
+
+void MainWindow::slot_UserIn(QString name)
+{
+    ui->listWidgetUsers->addItem(name);
+}
+
+void MainWindow::slot_UserOut(QString name)
+{
+    for(int i = 0; i < ui->listWidgetUsers->count(); ++i)
+    {
+        QListWidgetItem* item = ui->listWidgetUsers->item(i);
+        if(item->text() == name)
+        {
+            ui->listWidgetUsers->removeItemWidget(item);
+            break;
+        }
     }
 }

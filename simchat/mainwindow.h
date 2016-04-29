@@ -23,6 +23,9 @@ private slots:
 
     void on_pushButton_LogIn_clicked();
 
+    void slot_UserIn(QString name);
+    void slot_UserOut(QString name);
+
 private:
     Ui::MainWindow *ui;
 

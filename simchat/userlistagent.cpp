@@ -32,7 +32,7 @@ void UserListAgent::run()
         if(i == m_usersList.end())
         {
             m_usersList.insert(name, UserData(timeCurrent, endpoint));
-            emit send_userEnter(name);
+            emit send_userIn(name);
         }
         else
         {

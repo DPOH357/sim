@@ -18,7 +18,7 @@ public:
     boost::asio::ip::udp::endpoint getUserEndpoint(QString name);
 
 signals:
-    void send_userEnter(QString name);
+    void send_userIn(QString name);
     void send_userOut(QString name);
 
 private:
