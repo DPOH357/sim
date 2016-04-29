@@ -18,8 +18,8 @@ using namespace boost::asio;
 
 
 template < class T >
-class broadcast_sender : public boost::enable_shared_from_this<net::broadcast_sender<T> >
-                       , public boost::noncopyable
+class SIMLIB_API broadcast_sender : public boost::enable_shared_from_this<net::broadcast_sender<T> >
+                                  , public boost::noncopyable
 {
     broadcast_sender(unsigned int port, net::gate_interface<T>* gate)
         : m_socket( m_io_service, ip::udp::endpoint(ip::udp::v4(), 0) )

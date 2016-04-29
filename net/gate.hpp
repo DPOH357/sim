@@ -12,7 +12,7 @@ namespace sim
     {
 
 template <class T>
-class gate_interface
+class SIMLIB_API gate_interface
 {
 public:
     gate_interface() {}
@@ -47,7 +47,7 @@ private:
 
 
 template <class T>
-class gate_message : public gate_interface<T>
+class SIMLIB_API gate_message : public gate_interface<T>
 {
 public:
     gate_message(unsigned int queue_max_size, unsigned short repeat_count = 1)
@@ -102,7 +102,7 @@ private:
 };
 
 template <class T>
-class gate_stream : public gate_interface<T>
+class SIMLIB_API gate_stream : public gate_interface<T>
 {
 public:
     void _push(const T& val) override

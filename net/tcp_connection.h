@@ -20,8 +20,8 @@ namespace sim
 
 using namespace boost::asio;
 
-class tcp_connection : public boost::enable_shared_from_this<net::tcp_connection>
-                     , public boost::noncopyable
+class SIMLIB_API tcp_connection : public boost::enable_shared_from_this<net::tcp_connection>
+                                , public boost::noncopyable
 {
     tcp_connection(size_t data_size);
 

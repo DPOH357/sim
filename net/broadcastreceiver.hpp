@@ -19,8 +19,8 @@ namespace sim
 using namespace boost::asio;
 
 template <typename T>
-class broadcast_receiver : public boost::enable_shared_from_this<net::broadcast_receiver<T> >
-                         , public boost::noncopyable
+class SIMLIB_API broadcast_receiver : public boost::enable_shared_from_this<net::broadcast_receiver<T> >
+                                    , public boost::noncopyable
 {
     broadcast_receiver(unsigned int port, net::gate_interface<T>* gate)
         : m_socket( m_io_service, ip::udp::endpoint(ip::udp::v4(), port) )

@@ -20,6 +20,7 @@ unix:  LIBS +=  -L /usr/local/lib \
                 -lboost_thread \
                 -lboost_system
 
+LIBS += -L$$PWD/../bin/debug
 LIBS += -lsim$${POST}
 
 HEADERS += \
