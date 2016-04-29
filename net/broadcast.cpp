@@ -50,6 +50,8 @@ bool broadcast::get_message(base::raw_data& raw_data, ip::udp::endpoint* endpoin
         {
             *endpoint_sender_ptr = m_tmp_receive_data_pair.second;
         }
+
+        return true;
     }
 
     return false;
@@ -154,8 +156,7 @@ void net::broadcast::handler_send(const boost::system::error_code &error_code, s
     if(!error_code)
     {
         log::message(log::level::Info, std::string("UDP: Send complete."));
-        m_queue_send.pop();
-        do_send();
+        do_run(false);
     }
     else
     {

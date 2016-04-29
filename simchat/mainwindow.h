@@ -21,6 +21,8 @@ public:
 private slots:
     void slot_timerTick();
 
+    void on_pushButton_LogIn_clicked();
+
 private:
     Ui::MainWindow *ui;
 

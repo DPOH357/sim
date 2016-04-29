@@ -8,13 +8,6 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-
-    auto userListDetector = new UserListAgent(5555);
-    m_agentsList.push_back(userListDetector);
-
-
-    connect(&m_timer, &QTimer::timeout, this, &MainWindow::slot_timerTick);
-    m_timer.setInterval(200);
 }
 
 MainWindow::~MainWindow()
@@ -24,4 +17,30 @@ MainWindow::~MainWindow()
         delete agent;
     }
     delete ui;
+}
+
+void MainWindow::slot_timerTick()
+{
+    for(auto agent : m_agentsList)
+    {
+        agent->run();
+    }
+}
+
+void MainWindow::on_pushButton_LogIn_clicked()
+{
+    QString name = ui->lineEdit_Name->text();
+
+    if(!name.isEmpty())
+    {
+        auto userListDetector = new UserListAgent(5555, name);
+        m_agentsList.push_back(userListDetector);
+
+
+        connect(&m_timer, &QTimer::timeout, this, &MainWindow::slot_timerTick);
+        m_timer.setInterval(200);
+        m_timer.start();
+
+        ui->stackedWidget->setCurrentIndex(1);
+    }
 }
