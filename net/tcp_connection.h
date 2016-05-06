@@ -7,8 +7,6 @@
 #include <boost/atomic.hpp>
 #include <boost/asio.hpp>
 
-#include "gate.hpp"
-
 #include <base/raw_data.h>
 #include <base/queue.hpp>
 

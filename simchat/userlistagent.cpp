@@ -1,13 +1,15 @@
 #include "userlistagent.h"
 
 UserListAgent::UserListAgent(unsigned int port, QString name)
-    : m_dTimeCheck(1500)
-    , m_dTimeUserLeft(5000)
+    : m_dTimeCheck(4000)
+    , m_dTimeUserLeft(10000)
     , m_name(name)
     , m_timePrev(QTime::currentTime())
 {
     m_broadcast = sim::net::broadcast::create(port);
     m_name.reserve(name_length);
+
+    m_broadcast->send_message(sim::base::raw_data(m_name.toLocal8Bit().constData(), name_length));
 }
 
 void UserListAgent::run()
@@ -28,15 +30,18 @@ void UserListAgent::run()
         rawData.get_data((void*)name_char, name_length);
         QString name(name_char);
 
-        auto i =  m_usersList.find(name);
-        if(i == m_usersList.end())
+        //if(name != m_name)
         {
-            m_usersList.insert(name, UserData(timeCurrent, endpoint));
-            emit send_userIn(name);
-        }
-        else
-        {
-            i.value().timeCheck = timeCurrent;
+            auto i =  m_usersList.find(name);
+            if(i == m_usersList.end())
+            {
+                m_usersList.insert(name, UserData(timeCurrent, endpoint));
+                emit send_userIn(name);
+            }
+            else
+            {
+                i.value().timeCheck = timeCurrent;
+            }
         }
     }
 

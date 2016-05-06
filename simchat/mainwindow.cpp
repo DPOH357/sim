@@ -47,9 +47,11 @@ void MainWindow::on_pushButton_LogIn_clicked()
     }
 }
 
-void MainWindow::slot_UserIn(QString name)
+void MainWindow::slot_UserIn(QString name, boost::asio::ip::udp::endpoint endpoint)
 {
-    ui->listWidgetUsers->addItem(name);
+    QListWidgetItem* item = new QListWidgetItem(name);
+    item->setData(Qt::UserRole, QVarian<boost::asio::ip::udp::endpoint>(endpoint));
+    ui->listWidgetUsers->addItem(item);
 }
 
 void MainWindow::slot_UserOut(QString name)
@@ -62,5 +64,14 @@ void MainWindow::slot_UserOut(QString name)
             ui->listWidgetUsers->removeItemWidget(item);
             break;
         }
+    }
+}
+
+void MainWindow::on_listWidgetUsers_doubleClicked(const QModelIndex &index)
+{
+    QString userName = index.data().value<QString>();
+    if(!userName.isEmpty())
+    {
+        auto udpEndpoint = m_
     }
 }

@@ -23,8 +23,10 @@ private slots:
 
     void on_pushButton_LogIn_clicked();
 
-    void slot_UserIn(QString name);
+    void slot_UserIn(QString name, boost::asio::ip::udp::endpoint endpoint);
     void slot_UserOut(QString name);
+
+    void on_listWidgetUsers_doubleClicked(const QModelIndex &index);
 
 private:
     Ui::MainWindow *ui;

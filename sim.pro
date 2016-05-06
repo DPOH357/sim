@@ -33,7 +33,8 @@ HEADERS += \
     base/tools.h \
     net/broadcast.h \
     net/tcp_connection.h \
-    base/queue.hpp
+    base/queue.hpp \
+    net/tcp_receiver.h
 
 SOURCES += \
     net/beacon/beacon.cpp \
@@ -42,4 +43,5 @@ SOURCES += \
     base/timer.cpp \
     base/raw_data.cpp \
     base/tools.cpp \
-    net/broadcast.cpp
+    net/broadcast.cpp \
+    net/tcp_receiver.cpp
