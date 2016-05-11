@@ -9,7 +9,7 @@ namespace sim
 
 using namespace sim::base;
 
-tcp_receiver::tcp_receiver(unsigned int port, unsigned int queury_length, size_t data_size)
+tcp_receiver::tcp_receiver(unsigned short port, unsigned int queury_length, size_t data_size)
     : m_acceptor(m_io_service, ip::tcp::v4(), port)
     , m_socket(m_io_service)
     , m_queue_receive_data(queury_length)
@@ -27,7 +27,7 @@ tcp_receiver::~tcp_receiver()
     delete m_thread;
 }
 
-boost::shared_ptr<tcp_receiver> tcp_receiver::create(unsigned int port, unsigned int queury_length/* = 128*/, size_t data_size/* = 1024*/)
+boost::shared_ptr<tcp_receiver> tcp_receiver::create(unsigned short port, unsigned int queury_length/* = 128*/, size_t data_size/* = 1024*/)
 {
     auto tcp_receiver
             = boost::shared_ptr<net::tcp_receiver>( new net::tcp_receiver(port, queury_length, data_size) );
@@ -60,24 +60,28 @@ bool tcp_receiver::valid() const
 
 void tcp_receiver::run()
 {
+    do_accept();
+
+    m_io_service.run();
+}
+
+void tcp_receiver::do_accept()
+{
     m_acceptor.async_accept( m_socket,
                              boost::bind( &net::tcp_receiver::handler_accept, shared_from_this(), _1) );
-    m_io_service.run();
 }
 
 void tcp_receiver::handler_accept(const boost::system::error_code &error_code)
 {
     if(!error_code)
     {
-        m_socket.async_receive( buffer(m_buffer.get_data_ptr(), m_buffer.get_data_size()),
-                                boost::bind( &net::tcp_receiver::handler_receive
-                                           , shared_from_this(), _1, _2));
+        do_receive();
     }
     else
     {
         m_b_valid = false;
 
-        log::message( log::level::Info,
+        log::message( log::level::Error,
                       std::string("TCP: Error accept (")
                     + std::to_string(error_code.value())
                     + std::string("): ")
@@ -85,26 +89,30 @@ void tcp_receiver::handler_accept(const boost::system::error_code &error_code)
     }
 }
 
+void tcp_receiver::do_receive()
+{
+    m_socket.async_receive( buffer(m_buffer.get_data_ptr(), m_buffer.get_data_size()),
+                            boost::bind( &net::tcp_receiver::handler_receive
+                                       , shared_from_this(), _1, _2));
+}
+
 void tcp_receiver::handler_receive(const boost::system::error_code &error_code, size_t receive_bytes)
 {
     if(!error_code)
     {
-        log::message(log::level::Info, std::string("TCP: Receive complete."));
+        log::message(log::level::Debug, std::string("TCP: Receive complete."));
 
         tcp_receiver::receive_data receive_data;
         receive_data.raw_data.set(m_buffer.get_data_ptr(), receive_bytes);
         receive_data.endpoint = m_socket.local_endpoint();
         m_queue_receive_data.push(receive_data);
 
-        m_socket.close();
-
-        m_acceptor.async_accept( m_socket,
-                                 boost::bind( &net::tcp_receiver::handler_accept, shared_from_this(), _1) );
+        do_accept();
     }
     else
     {
         m_b_valid = false;
-        log::message(log::level::Info, std::string("TCP: Error receive: ") + error_code.message());
+        log::message(log::level::Debug, std::string("TCP: Error receive: ") + error_code.message());
     }
 }
 

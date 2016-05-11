@@ -64,7 +64,7 @@ public:
         if(m_queue.size() >= m_queue_max_size)
         {
             m_queue.pop();
-            sim::base::log::message(sim::base::log::level::Info, std::string("Queue is full."));
+            sim::base::log::message(sim::base::log::level::Debug, std::string("Queue is full."));
         }
 
         m_queue.push(val);

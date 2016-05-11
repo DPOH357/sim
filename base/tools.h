@@ -21,7 +21,7 @@ public:
     {
         Error   = 1,// only error messages
         Warning = 2,// warning and errors
-        Info    = 3 // all messages
+        Debug   = 3 // all messages
     };
 
     static void set_log_level(log::level log_level);

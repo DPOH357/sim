@@ -53,14 +53,14 @@ void beacon::detector::run()
                 delete m_mode;
                 beacon::data beacon_data(m_id, m_name, m_address);
                 m_mode = new sim::beacon::mode_default(m_sender, m_receiver, beacon_data);
-                log::message(log::level::Info, "Start default mode");
+                log::message(log::level::Debug, "Start default mode");
             }
         }
         else
         {
             delete m_mode;
             m_mode = new sim::beacon::mode_authen(m_sender, m_receiver);
-            log::message(log::level::Info, "Start authentication mode");
+            log::message(log::level::Debug, "Start authentication mode");
         }
     }
 }

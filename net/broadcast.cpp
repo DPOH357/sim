@@ -109,7 +109,7 @@ void net::broadcast::do_run(bool b_send_priority)
 
 void net::broadcast::do_receive()
 {
-    log::message(log::level::Info, std::string("UDP: Do receive."));
+    log::message(log::level::Debug, std::string("UDP: Do receive."));
 
     m_socket.async_receive_from( buffer(m_buffer.first.get_data_ptr(), m_buffer.first.get_data_size()),
                                  m_buffer.second,
@@ -121,20 +121,20 @@ void net::broadcast::handler_receive(const boost::system::error_code &error_code
 {
     if(!error_code)
     {
-        log::message(log::level::Info, std::string("UDP: Receive complete."));
+        log::message(log::level::Debug, std::string("UDP: Receive complete."));
         m_queue_receive.push(m_buffer);
         do_run(true);
     }
     else
     {
         m_b_valid = false;
-        log::message(log::level::Info, std::string("UDP: Error receive: ") + error_code.message());
+        log::message(log::level::Debug, std::string("UDP: Error receive: ") + error_code.message());
     }
 }
 
 void net::broadcast::do_send()
 {
-    log::message(log::level::Info, std::string("UDP: Do send."));
+    log::message(log::level::Debug, std::string("UDP: Do send."));
 
     if(m_queue_send.pop(m_buffer.first))
     {
@@ -155,12 +155,12 @@ void net::broadcast::handler_send(const boost::system::error_code &error_code, s
 
     if(!error_code)
     {
-        log::message(log::level::Info, std::string("UDP: Send complete."));
+        log::message(log::level::Debug, std::string("UDP: Send complete."));
         do_run(false);
     }
     else
     {
-        log::message(log::level::Info, std::string("UDP: Error send: ") + error_code.message());
+        log::message(log::level::Debug, std::string("UDP: Error send: ") + error_code.message());
     }
 }
 

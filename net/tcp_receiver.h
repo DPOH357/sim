@@ -21,12 +21,12 @@ using namespace boost::asio;
 class SIMLIB_API tcp_receiver : public boost::enable_shared_from_this<net::tcp_receiver>
                               , public boost::noncopyable
 {
-    tcp_receiver(unsigned int port, unsigned int queury_length, size_t data_size);
+    tcp_receiver(unsigned short port, unsigned int queury_length, size_t data_size);
 
 public:
     ~tcp_receiver();
 
-    static boost::shared_ptr<net::tcp_receiver> create(unsigned int port, unsigned int queury_length = 128, size_t data_size = 1024);
+    static boost::shared_ptr<net::tcp_receiver> create(unsigned short port, unsigned int queury_length = 128, size_t data_size = 1024);
 
     bool get_message(base::raw_data& raw_data, ip::tcp::endpoint* endpoint_ptr = nullptr);
 
@@ -34,6 +34,8 @@ public:
 
 private:
     void run();
+
+    void do_accept();
 
     void handler_accept(const boost::system::error_code& error_code);
 
