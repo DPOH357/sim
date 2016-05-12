@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include <QVector>
 #include <QTimer>
+#include <QListWidgetItem>
 #include <chatagent.h>
 
 namespace Ui {
@@ -23,10 +24,20 @@ private slots:
 
     void on_pushButton_LogIn_clicked();
 
-    void slot_UserIn(QString name, boost::asio::ip::udp::endpoint endpoint);
-    void slot_UserOut(QString name);
+    void slot_UserIn(QString addressStr, QString userName);
+    void slot_UserOut(QString addressStr, QString userName);
 
-    void on_listWidgetUsers_doubleClicked(const QModelIndex &index);
+    void slot_setDialog(const QStringList& dialog);
+
+    void slot_messageReceived(QString addressStr, QString message);
+
+    void on_listWidgetUsers_currentItemChanged(QListWidgetItem *current, QListWidgetItem *previous);
+
+    void on_pushButtonSend_clicked();
+
+signals:
+    void send_getDialog(QString addressStr);
+    void send_sendMessage(QString addressStr, QString message);
 
 private:
     Ui::MainWindow *ui;

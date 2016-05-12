@@ -25,6 +25,8 @@ tcp_connection::~tcp_connection()
 
     m_thread->join();
     delete m_thread;
+
+    log::message(log::level::Debug, std::string("TCP connection closed."));
 }
 
 boost::shared_ptr<tcp_connection> tcp_connection::create_wait_connection(unsigned int port, size_t data_size)
@@ -128,14 +130,14 @@ void tcp_connection::handler_accept(const boost::system::error_code &error_code)
         m_b_valid = false;
 
         log::message( log::level::Debug,
-                      std::string("TCP: Error accept (")
+                      std::string("TCP connection: Error accept (")
                     + std::to_string(error_code.value())
                     + std::string("): ")
                     + error_code.message());
     }
     else
     {
-        log::message(log::level::Debug, std::string("TCP: Accept valid."));
+        log::message(log::level::Debug, std::string("TCP connection: Accept valid."));
         do_run(false);
     }
 }
@@ -144,19 +146,19 @@ void tcp_connection::handler_connect(const boost::system::error_code &error_code
 {
     if(!error_code)
     {
-        log::message(log::level::Debug, std::string("TCP: Connection valid."));
+        log::message(log::level::Debug, std::string("TCP connection: Connection valid."));
         do_run(false);
     }
     else
     {
         m_b_valid = false;
-        log::message(log::level::Debug, std::string("TCP: Error connect: ") + error_code.message());
+        log::message(log::level::Debug, std::string("TCP connection: Error connect: ") + error_code.message());
     }
 }
 
 void tcp_connection::do_receive()
 {
-    log::message(log::level::Debug, std::string("TCP: Do receive."));
+    log::message(log::level::Debug, std::string("TCP connection: Do receive."));
     m_socket.async_receive(buffer(m_buffer.get_data_ptr(), m_buffer.get_data_size()),
                            boost::bind(&net::tcp_connection::handler_receive
                                        , shared_from_this(), _1, _2));
@@ -168,20 +170,20 @@ void tcp_connection::handler_receive(const boost::system::error_code &error_code
 
     if(!error_code)
     {
-        log::message(log::level::Debug, std::string("TCP: Receive complete."));
+        log::message(log::level::Debug, std::string("TCP connection: Receive complete."));
         m_queue_receive.push(m_buffer);
         do_run(true);
     }
     else
     {
         m_b_valid = false;
-        log::message(log::level::Debug, std::string("TCP: Error receive: ") + error_code.message());
+        log::message(log::level::Debug, std::string("TCP connection: Error receive: ") + error_code.message());
     }
 }
 
 void tcp_connection::do_send()
 {
-    log::message(log::level::Debug, std::string("TCP: Do send."));
+    log::message(log::level::Debug, std::string("TCP connection: Do send."));
     if(m_queue_send.pop(m_buffer))
     {
         m_socket.async_send( buffer(m_buffer.get_data_ptr(), m_buffer.get_data_size()),
@@ -198,16 +200,15 @@ void tcp_connection::handler_send(const boost::system::error_code &error_code, s
 {
     if(!error_code)
     {
-        log::message(log::level::Debug, std::string("TCP: Send complete."));
+        log::message(log::level::Debug, std::string("TCP connection: Send complete."));
         do_run(false);
     }
     else
     {
         m_b_valid = false;
-        log::message(log::level::Debug, std::string("TCP: Error send: ") + error_code.message());
+        log::message(log::level::Debug, std::string("TCP connection: Error send: ") + error_code.message());
     }
 }
-
 
 
 

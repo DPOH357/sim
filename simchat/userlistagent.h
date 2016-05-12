@@ -15,21 +15,21 @@ public:
 
     void run() override;
 
-    boost::asio::ip::udp::endpoint getUserEndpoint(QString name);
-
 signals:
-    void send_userIn(QString name);
-    void send_userOut(QString name);
+    void send_userIn(QString addressStr, QString userName);
+    void send_userOut(QString addressStr, QString userName);
 
 private:
     struct UserData
     {
         QTime timeCheck;
-        boost::asio::ip::udp::endpoint endpoint;
+        QString name;
+        QString addressStr;
 
-        UserData(QTime _timeCheck, boost::asio::ip::udp::endpoint _endpoint)
+        UserData(QTime _timeCheck, QString _name, QString _addressStr)
             : timeCheck(_timeCheck)
-            , endpoint(_endpoint)
+            , name(_name)
+            , addressStr(_addressStr)
         {
 
         }

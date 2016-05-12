@@ -10,7 +10,7 @@ namespace sim
 using namespace sim::base;
 
 tcp_receiver::tcp_receiver(unsigned short port, unsigned int queury_length, size_t data_size)
-    : m_acceptor(m_io_service, ip::tcp::v4(), port)
+    : m_acceptor(m_io_service, ip::tcp::endpoint(ip::tcp::v4(), port))
     , m_socket(m_io_service)
     , m_queue_receive_data(queury_length)
     , m_buffer(data_size)
@@ -25,6 +25,8 @@ tcp_receiver::~tcp_receiver()
 
     m_thread->join();
     delete m_thread;
+
+    log::message(log::level::Debug, std::string("TCP receiver closed."));
 }
 
 boost::shared_ptr<tcp_receiver> tcp_receiver::create(unsigned short port, unsigned int queury_length/* = 128*/, size_t data_size/* = 1024*/)
@@ -37,16 +39,22 @@ boost::shared_ptr<tcp_receiver> tcp_receiver::create(unsigned short port, unsign
     return tcp_receiver;
 }
 
-bool tcp_receiver::get_message(base::raw_data &raw_data, boost::asio::ip::tcp::endpoint *endpoint_ptr)
+bool tcp_receiver::get_message(base::raw_data &raw_data, std::string *address_str_ptr, unsigned short *port_ptr)
 {
     tcp_receiver::receive_data receive_data;
     bool ret =  m_queue_receive_data.pop(receive_data);
     if(ret)
     {
         raw_data = receive_data.raw_data;
-        if(endpoint_ptr)
+
+        if(address_str_ptr)
         {
-            *endpoint_ptr = receive_data.endpoint;
+            *address_str_ptr = receive_data.endpoint.address().to_string();
+        }
+
+        if(port_ptr)
+        {
+            *port_ptr = receive_data.endpoint.port();
         }
     }
 
@@ -67,6 +75,7 @@ void tcp_receiver::run()
 
 void tcp_receiver::do_accept()
 {
+    log::message(log::level::Debug, std::string("TCP receiver: Accept..."));
     m_acceptor.async_accept( m_socket,
                              boost::bind( &net::tcp_receiver::handler_accept, shared_from_this(), _1) );
 }
@@ -75,6 +84,7 @@ void tcp_receiver::handler_accept(const boost::system::error_code &error_code)
 {
     if(!error_code)
     {
+        log::message(log::level::Debug, std::string("TCP receiver: Accept complete."));
         do_receive();
     }
     else
@@ -82,15 +92,18 @@ void tcp_receiver::handler_accept(const boost::system::error_code &error_code)
         m_b_valid = false;
 
         log::message( log::level::Error,
-                      std::string("TCP: Error accept (")
+                      std::string("TCP receiver: Error accept (")
                     + std::to_string(error_code.value())
                     + std::string("): ")
                     + error_code.message());
+
+        do_accept();
     }
 }
 
 void tcp_receiver::do_receive()
 {
+    log::message(log::level::Debug, std::string("TCP receiver: Receive..."));
     m_socket.async_receive( buffer(m_buffer.get_data_ptr(), m_buffer.get_data_size()),
                             boost::bind( &net::tcp_receiver::handler_receive
                                        , shared_from_this(), _1, _2));
@@ -100,7 +113,7 @@ void tcp_receiver::handler_receive(const boost::system::error_code &error_code, 
 {
     if(!error_code)
     {
-        log::message(log::level::Debug, std::string("TCP: Receive complete."));
+        log::message(log::level::Debug, std::string("TCP receiver: Receive complete."));
 
         tcp_receiver::receive_data receive_data;
         receive_data.raw_data.set(m_buffer.get_data_ptr(), receive_bytes);
@@ -112,7 +125,7 @@ void tcp_receiver::handler_receive(const boost::system::error_code &error_code, 
     else
     {
         m_b_valid = false;
-        log::message(log::level::Debug, std::string("TCP: Error receive: ") + error_code.message());
+        log::message(log::level::Warning, std::string("TCP receiver: Error receive: ") + error_code.message());
     }
 }
 

@@ -2,12 +2,16 @@
 #include "ui_mainwindow.h"
 
 #include "userlistagent.h"
+#include "userdialog.h"
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+
+    ui->stackedWidget->setCurrentIndex(0);
+    ui->pushButtonSend->setDisabled(true);
 }
 
 MainWindow::~MainWindow()
@@ -33,11 +37,23 @@ void MainWindow::on_pushButton_LogIn_clicked()
 
     if(!name.isEmpty())
     {
-        auto userListDetector = new UserListAgent(5555, name);
+        const unsigned short port = 8888;
+        auto userListDetector = new UserListAgent(port, name);
         m_agentsList.push_back(userListDetector);
+
+        auto userDialog = new UserDialog(name, port);
+        m_agentsList.push_back(userDialog);
 
         connect(userListDetector, &UserListAgent::send_userIn, this, &MainWindow::slot_UserIn);
         connect(userListDetector, &UserListAgent::send_userOut, this, &MainWindow::slot_UserOut);
+
+        connect(this, &MainWindow::send_getDialog, userDialog, &UserDialog::slot_getDialog);
+        connect(this, &MainWindow::send_sendMessage, userDialog, &UserDialog::slot_sendMessage);
+        connect(userDialog, &UserDialog::send_dialog, this, &MainWindow::slot_setDialog);
+        connect(userDialog, &UserDialog::send_messageReceived, this, &MainWindow::slot_messageReceived);
+
+        connect(userListDetector, &UserListAgent::send_userIn, userDialog, &UserDialog::slot_userSignIn);
+        connect(userListDetector, &UserListAgent::send_userOut, userDialog, &UserDialog::slot_userSignOut);
 
         connect(&m_timer, &QTimer::timeout, this, &MainWindow::slot_timerTick);
         m_timer.setInterval(200);
@@ -47,31 +63,65 @@ void MainWindow::on_pushButton_LogIn_clicked()
     }
 }
 
-void MainWindow::slot_UserIn(QString name, boost::asio::ip::udp::endpoint endpoint)
+void MainWindow::slot_UserIn(QString addressStr, QString userName)
 {
-    QListWidgetItem* item = new QListWidgetItem(name);
-    item->setData(Qt::UserRole, QVarian<boost::asio::ip::udp::endpoint>(endpoint));
+    QListWidgetItem* item = new QListWidgetItem(userName);
+    item->setData(Qt::UserRole, QVariant(addressStr));
+
     ui->listWidgetUsers->addItem(item);
 }
 
-void MainWindow::slot_UserOut(QString name)
+void MainWindow::slot_UserOut(QString addressStr, QString userName)
 {
-    for(int i = 0; i < ui->listWidgetUsers->count(); ++i)
+    auto itemsList = ui->listWidgetUsers->findItems(userName, Qt::MatchFixedString);
+    for(auto item : itemsList)
     {
-        QListWidgetItem* item = ui->listWidgetUsers->item(i);
-        if(item->text() == name)
-        {
-            ui->listWidgetUsers->removeItemWidget(item);
-            break;
-        }
+        ui->listWidgetUsers->removeItemWidget(item);
     }
 }
 
-void MainWindow::on_listWidgetUsers_doubleClicked(const QModelIndex &index)
+void MainWindow::slot_setDialog(const QStringList &dialog)
 {
-    QString userName = index.data().value<QString>();
-    if(!userName.isEmpty())
+    for(auto str : dialog)
+        ui->textEditDialog->insertPlainText(str);
+}
+
+void MainWindow::slot_messageReceived(QString addressStr, QString message)
+{
+    QListWidgetItem* item = ui->listWidgetUsers->currentItem();
+    if(item
+    && item->data(Qt::UserRole).value<QString>() == addressStr)
     {
-        auto udpEndpoint = m_
+        ui->textEditDialog->insertPlainText(message);
     }
+}
+
+void MainWindow::on_listWidgetUsers_currentItemChanged(QListWidgetItem *current, QListWidgetItem *previous)
+{
+    Q_UNUSED(previous);
+
+    ui->pushButtonSend->setEnabled(current);
+
+    ui->textEditMessage->clear();
+    ui->textEditDialog->clear();
+
+    if(current)
+    {
+        QString addressStr = current->data(Qt::UserRole).value<QString>();
+        emit send_getDialog(addressStr);
+    }
+}
+
+void MainWindow::on_pushButtonSend_clicked()
+{
+    QListWidgetItem* item = ui->listWidgetUsers->currentItem();
+    if(item)
+    {
+        QString addressStr = item->data(Qt::UserRole).value<QString>();
+        QString message = ui->textEditMessage->toPlainText();
+
+        emit send_sendMessage(addressStr, message);
+    }
+
+    ui->textEditMessage->clear();
 }

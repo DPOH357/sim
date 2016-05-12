@@ -29,14 +29,16 @@ void UserListAgent::run()
 
         rawData.get_data((void*)name_char, name_length);
         QString name(name_char);
+        QString addressStr = QString::fromStdString(endpoint.address().to_string());
 
-        //if(name != m_name)
+        if(name != m_name)
         {
-            auto i =  m_usersList.find(name);
+            auto i =  m_usersList.find(addressStr);
             if(i == m_usersList.end())
             {
-                m_usersList.insert(name, UserData(timeCurrent, endpoint));
-                emit send_userIn(name);
+                m_usersList.insert(addressStr, UserData(timeCurrent, addressStr, name));
+
+                emit send_userIn(addressStr, name);
             }
             else
             {
@@ -49,9 +51,8 @@ void UserListAgent::run()
     {
         if(i.value().timeCheck.msecsTo(timeCurrent) > m_dTimeUserLeft)
         {
-            QString name = i.key();
+            emit send_userOut(i.value().addressStr, i.value().name);
             i = m_usersList.erase(i);
-            emit send_userOut(name);
         }
         else
         {

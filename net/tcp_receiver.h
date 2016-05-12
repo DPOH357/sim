@@ -28,7 +28,7 @@ public:
 
     static boost::shared_ptr<net::tcp_receiver> create(unsigned short port, unsigned int queury_length = 128, size_t data_size = 1024);
 
-    bool get_message(base::raw_data& raw_data, ip::tcp::endpoint* endpoint_ptr = nullptr);
+    bool get_message(base::raw_data& raw_data, std::string* address_str_ptr = nullptr, unsigned short* port_ptr = nullptr);
 
     bool valid() const;
 
@@ -60,6 +60,8 @@ private:
     base::queue<tcp_receiver::receive_data>    m_queue_receive_data;
     base::raw_data          m_buffer;
 };
+
+typedef boost::shared_ptr<net::tcp_receiver> tcp_receiver_shptr;
 
 
     } // namespace net
