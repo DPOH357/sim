@@ -82,6 +82,9 @@
               <property name="text">
                <string>Войти</string>
               </property>
+              <property name="checkable">
+               <bool>true</bool>
+              </property>
              </widget>
             </item>
            </layout>
@@ -120,15 +123,11 @@
        </layout>
       </widget>
       <widget class="QWidget" name="page_Dialog">
-       <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="0,0">
+       <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="1,0">
         <item>
          <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0">
           <item>
-           <widget class="QTextEdit" name="textEditDialog">
-            <property name="readOnly">
-             <bool>true</bool>
-            </property>
-           </widget>
+           <widget class="QListView" name="listViewDialog"/>
           </item>
           <item>
            <layout class="QHBoxLayout" name="horizontalLayout">
@@ -173,7 +172,7 @@ p, li { white-space: pre-wrap; }
          </layout>
         </item>
         <item>
-         <widget class="QListWidget" name="listWidgetUsers"/>
+         <widget class="QListView" name="listViewUsers"/>
         </item>
        </layout>
       </widget>

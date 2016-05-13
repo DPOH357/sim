@@ -2,10 +2,12 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include <QVector>
+#include <QHash>
 #include <QTimer>
 #include <QListWidgetItem>
-#include <chatagent.h>
+#include <QStringListModel>
+#include "userslistagent.h"
+#include "usersdialogagent.h"
 
 namespace Ui {
 class MainWindow;
@@ -22,29 +24,48 @@ public:
 private slots:
     void slot_timerTick();
 
-    void on_pushButton_LogIn_clicked();
-
     void slot_UserIn(QString addressStr, QString userName);
     void slot_UserOut(QString addressStr, QString userName);
 
-    void slot_setDialog(const QStringList& dialog);
+    void slot_messageReceived(QString addressStr, QString text);
 
-    void slot_messageReceived(QString addressStr, QString message);
-
-    void on_listWidgetUsers_currentItemChanged(QListWidgetItem *current, QListWidgetItem *previous);
+    void on_pushButton_LogIn_clicked();
 
     void on_pushButtonSend_clicked();
 
-signals:
-    void send_getDialog(QString addressStr);
-    void send_sendMessage(QString addressStr, QString message);
+    void on_listViewUsers_activated(const QModelIndex &index);
+
+private:
+    QString generateMessage(QString name, QString text);
+    void refreshUsersList();
 
 private:
     Ui::MainWindow *ui;
 
     QTimer          m_timer;
-    QVector<ChatAgent*>
-                    m_agentsList;
+
+    UsersListAgent*  m_usersListAgent;
+    UserDialog*      m_usersDialogAgent;
+
+    QStringListModel* m_usersListModel;
+    QStringListModel* m_dialogModel;
+
+    struct UserData
+    {
+        QString name;
+        QString address;
+        QStringList dialog;
+
+        UserData(QString _address, QString _name)
+            : address(_address)
+            , name(_name)
+        {
+
+        }
+    };
+
+    QHash<QString, UserData> m_usersList; // by address
+    QString                  m_currentUserAddress;
 };
 
 #endif // MAINWINDOW_H

@@ -1,33 +1,86 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-#include "userlistagent.h"
-#include "userdialog.h"
+#include "userslistagent.h"
+#include "usersdialogagent.h"
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::MainWindow)
+    ui(new Ui::MainWindow),
+    m_usersListAgent(nullptr),
+    m_usersDialogAgent(nullptr)
 {
     ui->setupUi(this);
 
     ui->stackedWidget->setCurrentIndex(0);
     ui->pushButtonSend->setDisabled(true);
+
+    m_usersListModel = new QStringListModel(this);
+    m_dialogModel = new QStringListModel(this);
+
+    ui->listViewUsers->setModel(m_usersListModel);
+    ui->listViewDialog->setModel(m_dialogModel);
 }
 
 MainWindow::~MainWindow()
 {
-    for(auto agent : m_agentsList)
-    {
-        delete agent;
-    }
+    if(m_usersDialogAgent)
+        delete m_usersDialogAgent;
+
+    if(m_usersListAgent)
+        delete m_usersListAgent;
+
     delete ui;
 }
 
 void MainWindow::slot_timerTick()
 {
-    for(auto agent : m_agentsList)
+    m_usersListAgent->run();
+    m_usersDialogAgent->run();
+}
+
+void MainWindow::slot_UserIn(QString addressStr, QString userName)
+{
+    auto i = m_usersList.find(addressStr);
+    if(i != m_usersList.end())
     {
-        agent->run();
+        if(i.value().name != userName)
+        {
+            i.value().name = userName;
+            refreshUsersList();
+        }
+    }
+    else
+    {
+        UserData ud(addressStr, userName);
+        m_usersList.insert(addressStr, ud);
+        refreshUsersList();
+    }
+}
+
+void MainWindow::slot_UserOut(QString addressStr, QString userName)
+{
+    auto i = m_usersList.find(addressStr);
+    if(i != m_usersList.end())
+    {
+        m_usersList.erase(i);
+        refreshUsersList();
+    }
+}
+
+void MainWindow::slot_messageReceived(QString addressStr, QString text)
+{
+    auto i = m_usersList.find(addressStr);
+    if(i != m_usersList.end())
+    {
+        UserData& ud(i.value());
+        QString message = generateMessage(ud.name, text);
+        ud.dialog.push_back(message);
+
+        if(ud.address == m_currentUserAddress)
+        {
+            m_dialogModel->setStringList(ud.dialog);
+        }
     }
 }
 
@@ -38,90 +91,83 @@ void MainWindow::on_pushButton_LogIn_clicked()
     if(!name.isEmpty())
     {
         const unsigned short port = 8888;
-        auto userListDetector = new UserListAgent(port, name);
-        m_agentsList.push_back(userListDetector);
+        m_usersListAgent = new UsersListAgent(port, name);
 
-        auto userDialog = new UserDialog(name, port);
-        m_agentsList.push_back(userDialog);
+        m_usersDialogAgent = new UserDialog(name, port);
 
-        connect(userListDetector, &UserListAgent::send_userIn, this, &MainWindow::slot_UserIn);
-        connect(userListDetector, &UserListAgent::send_userOut, this, &MainWindow::slot_UserOut);
+        connect(m_usersListAgent, &UsersListAgent::send_userIn, this, &MainWindow::slot_UserIn);
+        connect(m_usersListAgent, &UsersListAgent::send_userOut, this, &MainWindow::slot_UserOut);
 
-        connect(this, &MainWindow::send_getDialog, userDialog, &UserDialog::slot_getDialog);
-        connect(this, &MainWindow::send_sendMessage, userDialog, &UserDialog::slot_sendMessage);
-        connect(userDialog, &UserDialog::send_dialog, this, &MainWindow::slot_setDialog);
-        connect(userDialog, &UserDialog::send_messageReceived, this, &MainWindow::slot_messageReceived);
-
-        connect(userListDetector, &UserListAgent::send_userIn, userDialog, &UserDialog::slot_userSignIn);
-        connect(userListDetector, &UserListAgent::send_userOut, userDialog, &UserDialog::slot_userSignOut);
+        connect(m_usersDialogAgent, &UserDialog::send_messageReceived, this, &MainWindow::slot_messageReceived);
 
         connect(&m_timer, &QTimer::timeout, this, &MainWindow::slot_timerTick);
-        m_timer.setInterval(200);
+        m_timer.setInterval(500);
         m_timer.start();
 
         ui->stackedWidget->setCurrentIndex(1);
     }
 }
 
-void MainWindow::slot_UserIn(QString addressStr, QString userName)
-{
-    QListWidgetItem* item = new QListWidgetItem(userName);
-    item->setData(Qt::UserRole, QVariant(addressStr));
-
-    ui->listWidgetUsers->addItem(item);
-}
-
-void MainWindow::slot_UserOut(QString addressStr, QString userName)
-{
-    auto itemsList = ui->listWidgetUsers->findItems(userName, Qt::MatchFixedString);
-    for(auto item : itemsList)
-    {
-        ui->listWidgetUsers->removeItemWidget(item);
-    }
-}
-
-void MainWindow::slot_setDialog(const QStringList &dialog)
-{
-    for(auto str : dialog)
-        ui->textEditDialog->insertPlainText(str);
-}
-
-void MainWindow::slot_messageReceived(QString addressStr, QString message)
-{
-    QListWidgetItem* item = ui->listWidgetUsers->currentItem();
-    if(item
-    && item->data(Qt::UserRole).value<QString>() == addressStr)
-    {
-        ui->textEditDialog->insertPlainText(message);
-    }
-}
-
-void MainWindow::on_listWidgetUsers_currentItemChanged(QListWidgetItem *current, QListWidgetItem *previous)
-{
-    Q_UNUSED(previous);
-
-    ui->pushButtonSend->setEnabled(current);
-
-    ui->textEditMessage->clear();
-    ui->textEditDialog->clear();
-
-    if(current)
-    {
-        QString addressStr = current->data(Qt::UserRole).value<QString>();
-        emit send_getDialog(addressStr);
-    }
-}
-
 void MainWindow::on_pushButtonSend_clicked()
 {
-    QListWidgetItem* item = ui->listWidgetUsers->currentItem();
-    if(item)
+    QString text = ui->textEditMessage->toPlainText();
+
+    if(!text.isEmpty())
     {
-        QString addressStr = item->data(Qt::UserRole).value<QString>();
-        QString message = ui->textEditMessage->toPlainText();
+        auto i = m_usersList.find(m_currentUserAddress);
+        if(i != m_usersList.end())
+        {
+            UserData& ud(i.value());
 
-        emit send_sendMessage(addressStr, message);
+            m_usersDialogAgent->sendMessage(ud.address, text);
+
+            QString message = generateMessage(ud.name, text);
+            ud.dialog.push_back(message);
+            m_dialogModel->setStringList(ud.dialog);
+        }
+
+        ui->textEditMessage->clear();
     }
+}
 
-    ui->textEditMessage->clear();
+QString MainWindow::generateMessage(QString name, QString text)
+{
+    QTime time = QTime::currentTime();
+    return QString("[") + time.toString("hh:mm:ss") + QString("] ") + name + QString(": ") + text;
+}
+
+void MainWindow::refreshUsersList()
+{
+    QStringList users;
+    for(auto ud : m_usersList)
+    {
+        users.push_back(ud.name);
+    }
+    users.sort();
+    m_usersListModel->setStringList(users);
+}
+
+void MainWindow::on_listViewUsers_activated(const QModelIndex &index)
+{
+    if(index.isValid())
+    {
+        QString name = index.data().value<QString>();
+
+        for(auto ud : m_usersList)
+        {
+            if(ud.name == name)
+            {
+                m_currentUserAddress = name;
+
+                ui->textEditMessage->clear();
+                m_dialogModel->setStringList(ud.dialog);
+
+                break;
+            }
+        }
+    }
+    else
+    {
+        m_currentUserAddress = "";
+    }
 }

@@ -25,15 +25,14 @@ LIBS += -lsim$${POST}
 
 HEADERS += \
     mainwindow.h \
-    chatagent.h \
-    userlistagent.h \
-    userdialog.h
+    usersdialogagent.h \
+    userslistagent.h
 
 SOURCES += \
     main.cpp \
     mainwindow.cpp \
-    userlistagent.cpp \
-    userdialog.cpp
+    usersdialogagent.cpp \
+    userslistagent.cpp
 
 FORMS += \
     mainwindow.ui
