@@ -21,6 +21,7 @@ tcp_receiver::tcp_receiver(unsigned short port, unsigned int queury_length, size
 tcp_receiver::~tcp_receiver()
 {
     m_b_valid = false;
+    m_acceptor.close();
     m_socket.close();
 
     m_thread->join();
@@ -29,12 +30,11 @@ tcp_receiver::~tcp_receiver()
     log::message(log::level::Debug, std::string("TCP receiver closed."));
 }
 
-boost::shared_ptr<tcp_receiver> tcp_receiver::create(unsigned short port, unsigned int queury_length/* = 128*/, size_t data_size/* = 1024*/)
+boost::shared_ptr<net::tcp_receiver> tcp_receiver::create(unsigned short port, unsigned int queury_length/* = 128*/, size_t data_size/* = 1024*/)
 {
-    auto tcp_receiver
-            = boost::shared_ptr<net::tcp_receiver>( new net::tcp_receiver(port, queury_length, data_size) );
+    auto tcp_receiver = boost::shared_ptr<net::tcp_receiver>(new net::tcp_receiver(port, queury_length, data_size));
 
-    tcp_receiver->m_thread = new boost::thread( boost::bind(&net::tcp_receiver::run, tcp_receiver));
+    tcp_receiver->m_thread = new boost::thread( boost::bind(&net::tcp_receiver::run, tcp_receiver.get()));
 
     return tcp_receiver;
 }
@@ -77,7 +77,7 @@ void tcp_receiver::do_accept()
 {
     log::message(log::level::Debug, std::string("TCP receiver: Accept..."));
     m_acceptor.async_accept( m_socket,
-                             boost::bind( &net::tcp_receiver::handler_accept, shared_from_this(), _1) );
+                             boost::bind( &net::tcp_receiver::handler_accept, this, _1) );
 }
 
 void tcp_receiver::handler_accept(const boost::system::error_code &error_code)
@@ -96,8 +96,6 @@ void tcp_receiver::handler_accept(const boost::system::error_code &error_code)
                     + std::to_string(error_code.value())
                     + std::string("): ")
                     + error_code.message());
-
-        do_accept();
     }
 }
 
@@ -106,7 +104,7 @@ void tcp_receiver::do_receive()
     log::message(log::level::Debug, std::string("TCP receiver: Receive..."));
     m_socket.async_receive( buffer(m_buffer.get_data_ptr(), m_buffer.get_data_size()),
                             boost::bind( &net::tcp_receiver::handler_receive
-                                       , shared_from_this(), _1, _2));
+                                       , this, _1, _2));
 }
 
 void tcp_receiver::handler_receive(const boost::system::error_code &error_code, size_t receive_bytes)

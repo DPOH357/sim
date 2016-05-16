@@ -1,7 +1,6 @@
 #ifndef SIM_QUEUE_H
 #define SIM_QUEUE_H
 
-#include <export.h>
 #include <boost/thread.hpp>
 #include <vector>
 
@@ -11,7 +10,7 @@ namespace sim
     {
 
 template <class T>
-struct SIMLIB_API queue_data
+struct queue_data
 {
     queue_data()
         : m_b_valid(false)
@@ -51,7 +50,7 @@ private:
 };
 
 template <class T>
-class SIMLIB_API queue
+class queue
 {
 public:
     queue(unsigned int length)
@@ -59,6 +58,9 @@ public:
         , m_pos_front(0)
     {
         boost::lock_guard< boost::mutex > locker(m_mutex);
+
+        if(length < 2)
+            length = 2;
 
         m_list.reserve(length);
         for(unsigned int i = 0; i < length; ++i)
@@ -79,17 +81,22 @@ public:
     {
         boost::lock_guard< boost::mutex > locker(m_mutex);
 
+        if(m_pos_back == m_pos_front)
+        {
+            ++m_pos_front;
+
+            if(m_pos_front >= m_list.size())
+            {
+                m_pos_front = 0;
+            }
+        }
+
         m_list[m_pos_back]->set_data(data);
 
         ++m_pos_back;
         if(m_pos_back >= m_list.size())
         {
             m_pos_back = 0;
-        }
-
-        if(m_pos_back == m_pos_front)
-        {
-            ++m_pos_front;
         }
     }
 
@@ -134,7 +141,19 @@ public:
     bool is_empty()
     {
         boost::lock_guard< boost::mutex > locker(m_mutex);
-        return (m_pos_back == m_pos_front);
+        return (m_pos_back == m_pos_front) && !m_list[m_pos_front]->is_valid();
+    }
+
+    void clear()
+    {
+        boost::lock_guard< boost::mutex > locker(m_mutex);
+
+        for(auto e : m_list)
+        {
+            e->reset_data();
+        }
+
+        m_pos_back = m_pos_front = 0;
     }
 
 private:

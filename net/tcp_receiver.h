@@ -1,7 +1,6 @@
 #ifndef TCP_RECEIVER_H
 #define TCP_RECEIVER_H
 
-#include <boost/enable_shared_from_this.hpp>
 #include <boost/bind.hpp>
 #include <boost/thread.hpp>
 #include <boost/atomic.hpp>
@@ -18,8 +17,7 @@ namespace sim
 
 using namespace boost::asio;
 
-class SIMLIB_API tcp_receiver : public boost::enable_shared_from_this<net::tcp_receiver>
-                              , public boost::noncopyable
+class SIMLIB_API tcp_receiver : public boost::noncopyable
 {
     tcp_receiver(unsigned short port, unsigned int queury_length, size_t data_size);
 

@@ -33,7 +33,7 @@ boost::shared_ptr<tcp_sender> tcp_sender::create(unsigned int queue_length/* = 1
     auto tcp_sender
             = boost::shared_ptr<net::tcp_sender>(new net::tcp_sender(queue_length, data_size));
 
-    tcp_sender->m_thread = new boost::thread( boost::bind(&net::tcp_sender::run, tcp_sender));
+    tcp_sender->m_thread = new boost::thread( boost::bind(&net::tcp_sender::run, tcp_sender.get()));
 
     return tcp_sender;
 }
@@ -71,18 +71,23 @@ void tcp_sender::run()
 
 void tcp_sender::do_run()
 {
-    while(!m_queue_send.pop(m_buffer))
+    while(m_b_valid)
     {
-        boost::this_thread::sleep_for( boost::chrono::milliseconds(10) );
+        if(m_queue_send.pop(m_buffer))
+        {
+            do_connect();
+        }
+        else
+        {
+            boost::this_thread::sleep_for( boost::chrono::milliseconds(10) );
+        }
     }
-
-    do_connect();
 }
 
 void tcp_sender::do_connect()
 {
     m_socket.async_connect( m_buffer.endpoint
-                          , boost::bind( &net::tcp_sender::handler_connect, shared_from_this(), _1) );
+                          , boost::bind( &net::tcp_sender::handler_connect, this, _1) );
 }
 
 void tcp_sender::handler_connect(const boost::system::error_code &error_code)
@@ -96,7 +101,6 @@ void tcp_sender::handler_connect(const boost::system::error_code &error_code)
     {
         m_b_valid = false;
         log::message(log::level::Warning, std::string("TCP sender: Error connect: ") + error_code.message());
-        do_run();
     }
 }
 
@@ -105,7 +109,7 @@ void tcp_sender::do_send()
     log::message(log::level::Debug, std::string("TCP sender: Do send."));
     m_socket.async_send( buffer(m_buffer.raw_data.get_data_ptr(), m_buffer.raw_data.get_data_size()),
                          boost::bind( &net::tcp_sender::handler_send
-                                    , shared_from_this(), _1, _2));
+                                    , this, _1, _2));
 }
 
 void tcp_sender::handler_send(const boost::system::error_code &error_code, size_t sended_bytes)

@@ -24,10 +24,13 @@ net::broadcast::broadcast(unsigned int port)
 
 net::broadcast::~broadcast()
 {
+    m_b_valid = false;
     m_socket.close();
 
     m_thread->join();
     delete m_thread;
+
+    log::message(log::level::Debug, std::string("Broadcast closed."));
 }
 
 boost::shared_ptr<broadcast> broadcast::create(unsigned int port)
@@ -35,7 +38,7 @@ boost::shared_ptr<broadcast> broadcast::create(unsigned int port)
     auto broadcast
         = boost::shared_ptr<net::broadcast>(new net::broadcast(port));
 
-    broadcast->m_thread = new boost::thread(&net::broadcast::run, broadcast);
+    broadcast->m_thread = new boost::thread(&net::broadcast::run, broadcast.get());
 
     return broadcast;
 }
@@ -114,7 +117,7 @@ void net::broadcast::do_receive()
     m_socket.async_receive_from( buffer(m_buffer.first.get_data_ptr(), m_buffer.first.get_data_size()),
                                  m_buffer.second,
                                  boost::bind( &net::broadcast::handler_receive,
-                                              shared_from_this(), _1, _2) );
+                                              this, _1, _2) );
 }
 
 void net::broadcast::handler_receive(const boost::system::error_code &error_code, size_t receive_bytes)
@@ -127,7 +130,6 @@ void net::broadcast::handler_receive(const boost::system::error_code &error_code
     }
     else
     {
-        m_b_valid = false;
         log::message(log::level::Debug, std::string("UDP: Error receive: ") + error_code.message());
     }
 }
@@ -141,7 +143,7 @@ void net::broadcast::do_send()
         m_socket.async_send_to( buffer(m_buffer.first.get_data_ptr(), m_buffer.first.get_data_size()),
                                 m_endpoint,
                                 boost::bind( &net::broadcast::handler_send,
-                                             shared_from_this(), _1, _2) );
+                                             this, _1, _2) );
     }
     else
     {

@@ -9,10 +9,10 @@ namespace sim
 
 using namespace sim::base;
 
-tcp_connection::tcp_connection(size_t data_size)
+tcp_connection::tcp_connection(size_t data_size, unsigned int input_queue_length, unsigned int output_queue_length)
     : m_socket(m_io_service)
-    , m_queue_receive(data_size)
-    , m_queue_send(data_size)
+    , m_queue_receive(input_queue_length)
+    , m_queue_send(output_queue_length)
     , m_buffer(data_size)
     , m_b_valid(true)
 {
@@ -21,6 +21,7 @@ tcp_connection::tcp_connection(size_t data_size)
 tcp_connection::~tcp_connection()
 {
     m_b_valid = false;
+    m_io_service.stop();
     m_socket.close();
 
     m_thread->join();
@@ -29,22 +30,28 @@ tcp_connection::~tcp_connection()
     log::message(log::level::Debug, std::string("TCP connection closed."));
 }
 
-boost::shared_ptr<tcp_connection> tcp_connection::create_wait_connection(unsigned int port, size_t data_size)
+boost::shared_ptr<tcp_connection> tcp_connection::create_wait_connection
+    (unsigned int port, size_t data_size, unsigned int input_queue_length, unsigned int output_queue_length)
 {
     auto tcp_connection
-            = boost::shared_ptr<net::tcp_connection>( new net::tcp_connection(data_size) );
+            = boost::shared_ptr<net::tcp_connection>
+                ( new net::tcp_connection(data_size, input_queue_length, output_queue_length) );
 
-    tcp_connection->m_thread = new boost::thread( boost::bind(&net::tcp_connection::run, tcp_connection, _1), port );
+    tcp_connection->m_thread = new boost::thread
+            ( boost::bind(&net::tcp_connection::run, tcp_connection.get(), _1), port );
 
     return tcp_connection;
 }
 
-boost::shared_ptr<tcp_connection> tcp_connection::create_connect(ip::address address, unsigned int port, size_t data_size)
+boost::shared_ptr<tcp_connection> tcp_connection::create_connect
+    (ip::address address, unsigned int port, size_t data_size, unsigned int input_queue_length, unsigned int output_queue_length)
 {
     auto tcp_connection
-            = boost::shared_ptr<net::tcp_connection>(new net::tcp_connection(data_size));
+            = boost::shared_ptr<net::tcp_connection>
+                ( new net::tcp_connection(data_size, input_queue_length, output_queue_length) );
 
-    tcp_connection->m_thread = new boost::thread( boost::bind(&net::tcp_connection::run, tcp_connection, _1, _2), address, port);
+    tcp_connection->m_thread = new boost::thread
+            ( boost::bind(&net::tcp_connection::run, tcp_connection.get(), _1, _2), address, port);
 
     return tcp_connection;
 }
@@ -68,7 +75,7 @@ void tcp_connection::run(ip::address address, unsigned int port)
 {
     ip::tcp::endpoint endpoint(address, port);
     m_socket.async_connect( endpoint
-                          , boost::bind( &net::tcp_connection::handler_connect, shared_from_this(), _1) );
+                          , boost::bind( &net::tcp_connection::handler_connect, this, _1) );
 
     m_io_service.run();
 }
@@ -79,7 +86,7 @@ void tcp_connection::run(unsigned int port)
     ip::tcp::acceptor acceptor(m_io_service, endpoint);
 
     acceptor.async_accept( m_socket,
-                           boost::bind( &net::tcp_connection::handler_accept, shared_from_this(), _1) );
+                           boost::bind( &net::tcp_connection::handler_accept, this, _1) );
 
     m_io_service.run();
 }
@@ -137,8 +144,8 @@ void tcp_connection::handler_accept(const boost::system::error_code &error_code)
     }
     else
     {
+        m_b_valid = false;
         log::message(log::level::Debug, std::string("TCP connection: Accept valid."));
-        do_run(false);
     }
 }
 
@@ -161,7 +168,7 @@ void tcp_connection::do_receive()
     log::message(log::level::Debug, std::string("TCP connection: Do receive."));
     m_socket.async_receive(buffer(m_buffer.get_data_ptr(), m_buffer.get_data_size()),
                            boost::bind(&net::tcp_connection::handler_receive
-                                       , shared_from_this(), _1, _2));
+                                       , this, _1, _2));
 }
 
 void tcp_connection::handler_receive(const boost::system::error_code &error_code, size_t receive_bytes)
@@ -188,7 +195,7 @@ void tcp_connection::do_send()
     {
         m_socket.async_send( buffer(m_buffer.get_data_ptr(), m_buffer.get_data_size()),
                              boost::bind(&net::tcp_connection::handler_send
-                                         , shared_from_this(), _1, _2));
+                                         , this, _1, _2));
     }
     else
     {
@@ -209,7 +216,6 @@ void tcp_connection::handler_send(const boost::system::error_code &error_code, s
         log::message(log::level::Debug, std::string("TCP connection: Error send: ") + error_code.message());
     }
 }
-
 
 
     } // namespace net

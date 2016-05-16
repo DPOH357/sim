@@ -6,6 +6,8 @@
 #include <net/tcp_sender.h>
 #include <net/tcp_receiver.h>
 
+#include <base/queue.hpp>
+
 int main(int argc, char* argv[])
 {
 #if 0
@@ -40,5 +42,4 @@ int main(int argc, char* argv[])
     w.show();
 
     return a.exec();
-    return 0;
 }

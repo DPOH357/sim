@@ -1,7 +1,6 @@
 #ifndef TCP_CONNECTION_H
 #define TCP_CONNECTION_H
 
-#include <boost/enable_shared_from_this.hpp>
 #include <boost/bind.hpp>
 #include <boost/thread.hpp>
 #include <boost/atomic.hpp>
@@ -18,17 +17,16 @@ namespace sim
 
 using namespace boost::asio;
 
-class SIMLIB_API tcp_connection : public boost::enable_shared_from_this<net::tcp_connection>
-                                , public boost::noncopyable
+class SIMLIB_API tcp_connection : public boost::noncopyable
 {
-    tcp_connection(size_t data_size);
+    tcp_connection(size_t data_size, unsigned int input_queue_length, unsigned int output_queue_length);
 
 public:
     ~tcp_connection();
 
-    static boost::shared_ptr<net::tcp_connection> create_wait_connection(unsigned int port, size_t data_size);
+    static boost::shared_ptr<net::tcp_connection> create_wait_connection(unsigned int port, size_t data_size, unsigned int input_queue_length, unsigned int output_queue_length);
 
-    static boost::shared_ptr<net::tcp_connection> create_connect(ip::address address, unsigned int port, size_t data_size);
+    static boost::shared_ptr<net::tcp_connection> create_connect(ip::address address, unsigned int port, size_t data_size, unsigned int input_queue_length, unsigned int output_queue_length);
 
     bool get_message(base::raw_data& raw_data);
 

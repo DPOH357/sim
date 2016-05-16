@@ -2,7 +2,6 @@
 #define BROADCAST_H
 
 #include <export.h>
-#include <boost/enable_shared_from_this.hpp>
 #include <boost/bind.hpp>
 #include <boost/thread.hpp>
 #include <boost/atomic.hpp>
@@ -19,8 +18,7 @@ namespace sim
 
 using namespace boost::asio;
 
-class SIMLIB_API broadcast : public boost::enable_shared_from_this<broadcast>
-                           , public boost::noncopyable
+class SIMLIB_API broadcast : public boost::noncopyable
 {
     typedef std::pair<base::raw_data, ip::udp::endpoint> receive_data_pair;
 
