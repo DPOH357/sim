@@ -149,7 +149,8 @@ void MainWindow::refreshUsersList()
 
 void MainWindow::on_listViewUsers_activated(const QModelIndex &index)
 {
-    if(index.isValid())
+    bool bValid = index.isValid();
+    if(bValid)
     {
         QString name = index.data().value<QString>();
 
@@ -157,17 +158,26 @@ void MainWindow::on_listViewUsers_activated(const QModelIndex &index)
         {
             if(ud.name == name)
             {
-                m_currentUserAddress = name;
+                m_currentUserAddress = ud.address;
 
-                ui->textEditMessage->clear();
                 m_dialogModel->setStringList(ud.dialog);
 
                 break;
             }
         }
+
+        ui->textEditMessage->clear();
     }
     else
     {
         m_currentUserAddress = "";
     }
+
+    ui->textEditMessage->setEnabled(bValid);
+}
+
+void MainWindow::on_textEditMessage_textChanged()
+{
+    bool bEmpty = ui->textEditMessage->toPlainText().isEmpty();
+    ui->pushButtonSend->setDisabled(bEmpty);
 }

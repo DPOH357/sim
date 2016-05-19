@@ -102,7 +102,7 @@ void tcp_receiver::handler_accept(const boost::system::error_code &error_code)
 void tcp_receiver::do_receive()
 {
     log::message(log::level::Debug, std::string("TCP receiver: Receive..."));
-    m_socket.async_receive( buffer(m_buffer.get_data_ptr(), m_buffer.get_data_size()),
+    m_socket.async_receive( buffer(m_buffer.get_data_ptr(), m_buffer.get_memory_size()),
                             boost::bind( &net::tcp_receiver::handler_receive
                                        , this, _1, _2));
 }
@@ -115,8 +115,10 @@ void tcp_receiver::handler_receive(const boost::system::error_code &error_code, 
 
         tcp_receiver::receive_data receive_data;
         receive_data.raw_data.set(m_buffer.get_data_ptr(), receive_bytes);
-        receive_data.endpoint = m_socket.local_endpoint();
+        receive_data.endpoint = m_socket.remote_endpoint();
         m_queue_receive_data.push(receive_data);
+
+        m_socket.close();
 
         do_accept();
     }

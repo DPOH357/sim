@@ -24,7 +24,7 @@
        </size>
       </property>
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="page">
        <layout class="QHBoxLayout" name="horizontalLayout_5">
@@ -133,6 +133,9 @@
            <layout class="QHBoxLayout" name="horizontalLayout">
             <item>
              <widget class="QTextEdit" name="textEditMessage">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
               <property name="sizePolicy">
                <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
                 <horstretch>0</horstretch>
@@ -172,7 +175,11 @@ p, li { white-space: pre-wrap; }
          </layout>
         </item>
         <item>
-         <widget class="QListView" name="listViewUsers"/>
+         <widget class="QListView" name="listViewUsers">
+          <property name="editTriggers">
+           <set>QAbstractItemView::NoEditTriggers</set>
+          </property>
+         </widget>
         </item>
        </layout>
       </widget>

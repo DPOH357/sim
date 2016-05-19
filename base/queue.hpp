@@ -65,23 +65,20 @@ public:
         m_list.reserve(length);
         for(unsigned int i = 0; i < length; ++i)
         {
-            m_list.push_back(new queue_data<T>());
+            m_list.push_back(queue_data<T>());
         }
     }
 
     ~queue()
     {
-        for(auto data : m_list)
-        {
-            delete data;
-        }
     }
 
     void push(const T& data)
     {
         boost::lock_guard< boost::mutex > locker(m_mutex);
 
-        if(m_pos_back == m_pos_front)
+        if(m_pos_back == m_pos_front
+        && m_list[m_pos_front].is_valid())
         {
             ++m_pos_front;
 
@@ -91,7 +88,7 @@ public:
             }
         }
 
-        m_list[m_pos_back]->set_data(data);
+        m_list[m_pos_back].set_data(data);
 
         ++m_pos_back;
         if(m_pos_back >= m_list.size())
@@ -104,10 +101,10 @@ public:
     {
         boost::lock_guard< boost::mutex > locker(m_mutex);
 
-        queue_data<T>* data_ptr( m_list[m_pos_front] );
-        if(data_ptr->get_data(data))
+        queue_data<T>& qdata( m_list[m_pos_front] );
+        if(qdata.get_data(data))
         {
-            data_ptr->reset_data();
+            qdata.reset_data();
 
             ++m_pos_front;
             if(m_pos_front >= m_list.size())
@@ -125,10 +122,10 @@ public:
     {
         boost::lock_guard< boost::mutex > locker(m_mutex);
 
-        queue_data<T>* data_ptr( m_list[m_pos_front] );
-        if(data_ptr->is_valid())
+        queue_data<T>& qdata( m_list[m_pos_front] );
+        if(qdata->is_valid())
         {
-            data_ptr->reset_data();
+            qdata.reset_data();
 
             ++m_pos_front;
             if(m_pos_front >= m_list.size())
@@ -141,7 +138,7 @@ public:
     bool is_empty()
     {
         boost::lock_guard< boost::mutex > locker(m_mutex);
-        return (m_pos_back == m_pos_front) && !m_list[m_pos_front]->is_valid();
+        return (m_pos_back == m_pos_front) && !m_list[m_pos_front].is_valid();
     }
 
     void clear()
@@ -150,7 +147,7 @@ public:
 
         for(auto e : m_list)
         {
-            e->reset_data();
+            e.reset_data();
         }
 
         m_pos_back = m_pos_front = 0;
@@ -161,7 +158,7 @@ private:
     unsigned int                m_pos_back;
     unsigned int                m_pos_front;
 
-    std::vector< queue_data<T>* >   m_list;
+    std::vector< queue_data<T> >   m_list;
 };
 
 

@@ -76,6 +76,7 @@ void tcp_sender::do_run()
         if(m_queue_send.pop(m_buffer))
         {
             do_connect();
+            break;
         }
         else
         {
@@ -86,6 +87,9 @@ void tcp_sender::do_run()
 
 void tcp_sender::do_connect()
 {
+    log::message(log::level::Debug, std::string("TCP sender: Connect to ")
+                 + m_buffer.endpoint.address().to_string()
+                 + ":" + std::to_string(m_buffer.endpoint.port()));
     m_socket.async_connect( m_buffer.endpoint
                           , boost::bind( &net::tcp_sender::handler_connect, this, _1) );
 }
@@ -99,8 +103,9 @@ void tcp_sender::handler_connect(const boost::system::error_code &error_code)
     }
     else
     {
-        m_b_valid = false;
+        //m_b_valid = false;
         log::message(log::level::Warning, std::string("TCP sender: Error connect: ") + error_code.message());
+        do_run();
     }
 }
 
@@ -119,7 +124,7 @@ void tcp_sender::handler_send(const boost::system::error_code &error_code, size_
     if(!error_code)
     {
         log::message(log::level::Debug, std::string("TCP sender: Send complete."));
-
+        m_socket.close();
         do_run();
     }
     else

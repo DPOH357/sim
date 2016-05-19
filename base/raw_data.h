@@ -29,10 +29,12 @@ public:
     size_t      get_data_size() const;
     bool        get_data(void* data_ptr, size_t data_size) const;
 
+    size_t      get_memory_size() const;
+
     template<class T>
     bool        get_data(T& data) const { return get_data(&data, sizeof(T)); }
 
-    void* get_data_ptr() const { return m_memory_ptr; }
+    void *get_data_ptr() const;
 
     void operator=(const base::raw_data& raw_data);
 

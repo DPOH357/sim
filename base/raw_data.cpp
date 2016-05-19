@@ -82,6 +82,16 @@ bool sim::base::raw_data::get_data(void *data_ptr, size_t data_size) const
     return false;
 }
 
+size_t sim::base::raw_data::get_memory_size() const
+{
+    return m_memory_size;
+}
+
+void *sim::base::raw_data::get_data_ptr() const
+{
+    return m_memory_ptr;
+}
+
 void sim::base::raw_data::operator=(const sim::base::raw_data &raw_data)
 {
     if(m_data_size < raw_data.m_data_size)

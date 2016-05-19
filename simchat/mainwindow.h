@@ -35,6 +35,8 @@ private slots:
 
     void on_listViewUsers_activated(const QModelIndex &index);
 
+    void on_textEditMessage_textChanged();
+
 private:
     QString generateMessage(QString name, QString text);
     void refreshUsersList();

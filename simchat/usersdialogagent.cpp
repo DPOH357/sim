@@ -14,8 +14,7 @@ void UserDialog::run()
     sim::base::raw_data raw_data;
     std::string addressStr;
     unsigned short port;
-    if(m_receiver->get_message(raw_data, &addressStr, &port)
-    && m_port == port)
+    if(m_receiver->get_message(raw_data, &addressStr))
     {
         Message message;
         if(raw_data.get_data(message))
