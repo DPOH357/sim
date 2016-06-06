@@ -3,6 +3,8 @@
 
 #include <export.h>
 
+#include <cstring>
+
 namespace sim
 {
     namespace base
@@ -21,15 +23,15 @@ public:
 
     void        reserve(size_t size);
 
-    void        set(const void* data_ptr, size_t data_size);
+    void        set_data(const void* data_ptr, size_t data_size);
 
     template<class T>
-    void        set(const T& data) { set(&data, sizeof(T)); }
+    void        set_data(const T& data) { set_data(&data, sizeof(T)); }
 
     size_t      get_data_size() const;
     bool        get_data(void* data_ptr, size_t data_size) const;
 
-    size_t      get_memory_size() const;
+    size_t      get_reserved_size() const;
 
     template<class T>
     bool        get_data(T& data) const { return get_data(&data, sizeof(T)); }
@@ -54,7 +56,7 @@ public:
 
 private:
     size_t  m_memory_size;
-    void*   m_memory_ptr;
+    char*   m_memory_ptr;
     size_t  m_data_size;
 };
 

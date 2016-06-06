@@ -54,7 +54,7 @@ void sim::base::raw_data::reserve(size_t size)
     m_memory_size = size;
 }
 
-void sim::base::raw_data::set(const void *data_ptr, size_t data_size)
+void sim::base::raw_data::set_data(const void *data_ptr, size_t data_size)
 {
     if(m_memory_size < data_size)
     {
@@ -72,7 +72,7 @@ size_t sim::base::raw_data::get_data_size() const
 
 bool sim::base::raw_data::get_data(void *data_ptr, size_t data_size) const
 {
-    if(m_data_size <= data_size)
+    if(m_data_size == data_size)
     {
         std::memcpy(data_ptr, m_memory_ptr, m_data_size);
 
@@ -82,7 +82,7 @@ bool sim::base::raw_data::get_data(void *data_ptr, size_t data_size) const
     return false;
 }
 
-size_t sim::base::raw_data::get_memory_size() const
+size_t sim::base::raw_data::get_reserved_size() const
 {
     return m_memory_size;
 }

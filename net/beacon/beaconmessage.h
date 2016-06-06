@@ -5,68 +5,69 @@
 
 namespace sim
 {
-    namespace beacon
+    namespace net
     {
 
-enum class message_type
+enum class beacon_message_type
 {
     Invalid,
     Request,
     Response
 };
 
-struct data
+struct beacon_message_data
 {
     enum { name_size = 64 };
 
     unsigned char id;
     char name[name_size];
-    boost::asio::ip::address address;
+    char address[16];
 
-    data()
+    beacon_message_data()
         : id(0)
     {
-        memset(name, 0, name_size);
+        memset(name, 0, sizeof(name));
+        memset(address, 0, sizeof(address));
     }
 
-    data(unsigned char _id, char _name[], boost::asio::ip::address _address)
+    beacon_message_data(unsigned char _id, char _name[], char _address[])
         : id(_id)
-        , address(_address)
     {
-        strcpy_s(name, name_size, _name);
+        strncpy(name, _name, sizeof(name));
+        strncpy(address, _address, sizeof(address));
     }
 
-    data(const beacon::data& data)
+    beacon_message_data(const beacon_message_data& data)
     {
         id = data.id;
-        address = data.address;
-        strcpy_s(name, name_size, data.name);
+        strncpy(name, data.name, sizeof(name));
+        strncpy(address, data.address, sizeof(address));
     }
 };
 
-struct message
+struct beacon_message
 {
-    int  mark;
-    beacon::message_type message_type;
-    beacon::data data;
+    unsigned int  mark;
+    beacon_message_type message_type;
+    beacon_message_data data;
 
-    message()
+    beacon_message()
         : mark(0)
-        , message_type(beacon::message_type::Invalid)
+        , message_type(net::beacon_message_type::Invalid)
     {
 
     }
 
-    message(int _mark)
+    beacon_message(unsigned int _mark)
         : mark(_mark)
-        , message_type(message_type::Request)
+        , message_type(net::beacon_message_type::Request)
     {
 
     }
 
-    message(int _mark, const beacon::data& _data)
+    beacon_message(unsigned int _mark, const net::beacon_message_data& _data)
         : mark(_mark)
-        , message_type(message_type::Response)
+        , message_type(net::beacon_message_type::Response)
         , data(_data)
     {
 
@@ -74,7 +75,7 @@ struct message
 };
 
 
-    } // namespace beacon
+    } // namespace net
 } // namespace sim
 
 #endif // BEACON_MESSAGE_H

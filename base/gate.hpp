@@ -1,18 +1,18 @@
-#ifndef SIMNETGATE_H
-#define SIMNETGATE_H
+#ifndef GATE_H
+#define GATE_H
 
-#include <queue>
+#include <log/log.h>
 #include <boost/thread.hpp>
-
-#include <base/tools.h>
+#include <queue>
 
 namespace sim
 {
-    namespace net
+    namespace base
     {
 
+
 template <class T>
-class SIMLIB_API gate_interface
+class gate_interface
 {
 public:
     gate_interface() {}
@@ -47,24 +47,20 @@ private:
 
 
 template <class T>
-class SIMLIB_API gate_message : public gate_interface<T>
+class gate_message : public gate_interface<T>
 {
 public:
-    gate_message(unsigned int queue_max_size, unsigned short repeat_count = 1)
-        : m_repeat_count(repeat_count)
-        , m_queue_max_size(queue_max_size)
-        , m_repeat_counter(0)
+    gate_message(unsigned int queue_max_length)
+        : m_queue_max_length(queue_max_length)
     {
-        if(m_repeat_count == 0)
-            m_repeat_count = 1;
     }
 
     void _push(const T& val) override
     {
-        if(m_queue.size() >= m_queue_max_size)
+        if(m_queue.size() >= m_queue_max_length)
         {
             m_queue.pop();
-            sim::base::log::message(sim::base::log::level::Debug, std::string("Queue is full."));
+            log::message(log::level::Debug, std::string("Queue is full."));
         }
 
         m_queue.push(val);
@@ -75,13 +71,7 @@ public:
         if(!m_queue.empty())
         {
             val = m_queue.front();
-
-            m_repeat_counter++;
-            if(m_repeat_counter >= m_repeat_count)
-            {
-                m_repeat_counter = 0;
-                m_queue.pop();
-            }
+            m_queue.pop();
 
             return true;
         }
@@ -95,40 +85,52 @@ public:
     }
 
 private:
-    unsigned short  m_repeat_count;
-    unsigned int    m_queue_max_size;
+    unsigned int    m_queue_max_length;
     std::queue<T>   m_queue;
-    unsigned short  m_repeat_counter;
 };
 
 template <class T>
-class SIMLIB_API gate_stream : public gate_interface<T>
+class gate_stream : public gate_interface<T>
 {
 public:
+    gate_stream()
+        : m_b_valid(false)
+    {
+
+    }
+
     void _push(const T& val) override
     {
         m_buffer = val;
+        m_b_valid = true;
     }
 
-    bool _pop(net::T &val) override
+    bool _pop(T &val) override
     {
-        val = m_buffer;
+        if(m_b_valid)
+        {
+            val = m_buffer;
+            m_b_valid = false;
 
-        return true;
+            return true;
+        }
+
+        return false;
     }
 
     bool _empty() override
     {
-        return false;
+        return !m_b_valid;
     }
 
 private:
+    bool m_b_valid;
     T m_buffer;
 };
 
 
-    } // namespace net
+    } // namespace base
 } // namespace sim
 
-#endif // SIMNETGATE_H
+#endif // GATE_H
 
