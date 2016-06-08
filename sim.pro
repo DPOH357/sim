@@ -21,29 +21,31 @@ unix:  LIBS +=  -L /usr/local/lib \
                 -lboost_system
 
 HEADERS += \
-    export.h \
-    net/beacon/beacon.h \
-    net/beacon/beaconmessage.h \
-    net/beacon/beaconmode.h \
-    net/broadcastreceiver.hpp \
-    net/broadcastsender.hpp \
-    net/gate.hpp \
-    base/timer.h \
+    base/queue.hpp \
     base/raw_data.h \
+    base/timer.h \
     base/tools.h \
+    export.h \
+    log/log.h \
+    net/beacon/beacon.h \
+    net/beacon/beaconmode.h \
     net/broadcast.h \
     net/tcp_connection.h \
-    base/queue.hpp \
     net/tcp_receiver.h \
-    net/tcp_sender.h
+    net/tcp_sender.h \
+    net/beacon/beaconmessage.h \
+    base/gate.hpp
+
 
 SOURCES += \
+    base/raw_data.cpp \
+    base/timer.cpp \
+    base/tools.cpp \
+    log/log.cpp \
     net/beacon/beacon.cpp \
     net/beacon/beaconmode.cpp \
-    net/tcp_connection.cpp \
-    base/timer.cpp \
-    base/raw_data.cpp \
-    base/tools.cpp \
     net/broadcast.cpp \
+    net/tcp_connection.cpp \
     net/tcp_receiver.cpp \
     net/tcp_sender.cpp
+

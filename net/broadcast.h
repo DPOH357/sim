@@ -8,7 +8,7 @@
 #include <boost/asio.hpp>
 
 #include <base/raw_data.h>
-#include <base/queue.hpp>
+#include <base/gate.hpp>
 
 namespace sim
 {
@@ -29,9 +29,32 @@ public:
 
     static boost::shared_ptr<broadcast> create(unsigned int port);
 
+    void enable_message_mode(unsigned int messages_queue_length);
+
     bool get_message(base::raw_data& raw_data, ip::udp::endpoint* endpoint_sender_ptr = nullptr);
 
+    template<typename T>
+    bool get_message(T& val, ip::udp::endpoint* endpoint_sender_ptr = nullptr)
+    {
+        base::raw_data raw_data;
+        if(get_message(raw_data, endpoint_sender_ptr)
+        && raw_data.get_data(val))
+        {
+            return true;
+        }
+
+        return false;
+    }
+
     void send_message(const base::raw_data& raw_data);
+
+    template<typename T>
+    void send_message(const T& msg)
+    {
+        base::raw_data raw_data;
+        raw_data.set_data(msg);
+        send_message(raw_data);
+    }
 
 private:
     void run();
@@ -54,10 +77,10 @@ private:
     boost::thread*          m_thread;
     ip::udp::socket         m_socket;
     ip::udp::endpoint       m_endpoint;
-    base::queue<base::raw_data>
-                            m_queue_send;
-    base::queue<receive_data_pair>
-                            m_queue_receive;
+    base::gate_interface<base::raw_data>*
+                            m_gate_send;
+    base::gate_interface<receive_data_pair>*
+                            m_gate_receive;
 
     receive_data_pair       m_buffer;
     receive_data_pair       m_tmp_receive_data_pair;

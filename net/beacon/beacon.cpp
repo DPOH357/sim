@@ -1,70 +1,61 @@
 #include "beacon.h"
 
 #include "beaconmode.h"
-#include <base/tools.h>
+#include <log/log.h>
 
 namespace sim
 {
-    namespace beacon
+    namespace net
     {
 
 using namespace sim::base;
 
-beacon::detector::detector(char name[], boost::asio::ip::address address, unsigned int port)
+beacon::beacon(const std::string& name, const std::string& address_str, unsigned int port)
     : m_mode(nullptr)
     , m_id(0)
-    , m_address(address)
 {
-    strcpy_s(m_name, beacon::data::name_size, name);
+    strncpy(m_name, name.c_str(), beacon::beacon_name_max_length);
+    m_name[beacon::beacon_name_max_length - 1] = 0;
 
-    const unsigned short broadcast_messages_buffer_size = 32;
-    const unsigned short repeat_broadcast_message_count = 3;
+    strncpy(m_address_str, address_str.c_str(), 16);
+    m_address_str[15] = 0;
 
-    m_sender
-        = net::broadcast_sender<sim::beacon::message>::create(
-                port,
-                new sim::net::gate_message<sim::beacon::message>(
-                    broadcast_messages_buffer_size,
-                    repeat_broadcast_message_count));
-    m_receiver
-        = net::broadcast_receiver<sim::beacon::message>::create(
-                port,
-                new sim::net::gate_message<sim::beacon::message>(
-                    broadcast_messages_buffer_size));
+    m_broadcast = net::broadcast::create(port);
+    m_broadcast->enable_message_mode(100);
 
-    m_mode = new sim::beacon::mode_authen(m_sender, m_receiver);
+    m_mode = new net::beacon_mode_authen(m_broadcast);
 }
 
-beacon::detector::~detector()
+beacon::~beacon()
 {
     delete m_mode;
 }
 
-void beacon::detector::run()
+void beacon::run()
 {
     if(!m_mode->run())
     {
-        auto authentication_mode = dynamic_cast<sim::beacon::mode_authen*>(m_mode);
+        auto authentication_mode = dynamic_cast<net::beacon_mode_authen*>(m_mode);
         if(authentication_mode)
         {
             m_id = authentication_mode->get_free_id();
             if(m_id)
             {
                 delete m_mode;
-                beacon::data beacon_data(m_id, m_name, m_address);
-                m_mode = new sim::beacon::mode_default(m_sender, m_receiver, beacon_data);
-                log::message(log::level::Debug, "Start default mode");
+                beacon_message_data beacon_data(m_id, m_name, m_address_str);
+                m_mode = new net::beacon_mode_default(m_broadcast, beacon_data);
+                log::message(log::level::Debug, "NetBeacon: Start default mode");
             }
         }
         else
         {
             delete m_mode;
-            m_mode = new sim::beacon::mode_authen(m_sender, m_receiver);
-            log::message(log::level::Debug, "Start authentication mode");
+            m_mode = new net::beacon_mode_authen(m_broadcast);
+            log::message(log::level::Debug, "NetBeacon: Start authentication mode");
         }
     }
 }
 
 
-    } // namespace beacon
+    } // namespace net
 } // namespace sim
