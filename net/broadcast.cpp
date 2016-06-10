@@ -59,15 +59,20 @@ void broadcast::enable_message_mode(unsigned int messages_queue_length)
             (messages_queue_length);
 }
 
-bool broadcast::get_message(base::raw_data& raw_data, ip::udp::endpoint* endpoint_sender_ptr/* = nullptr*/)
+bool broadcast::get_message(base::raw_data& raw_data, std::string* address_str_ptr/* = nullptr*/, unsigned short* port_ptr/* = nullptr*/)
 {
     if(m_gate_receive->pop(m_tmp_receive_data_pair))
     {
         raw_data = m_tmp_receive_data_pair.first;
 
-        if(endpoint_sender_ptr)
+        if(address_str_ptr)
         {
-            *endpoint_sender_ptr = m_tmp_receive_data_pair.second;
+            *address_str_ptr = m_tmp_receive_data_pair.second.address().to_string();
+        }
+
+        if(port_ptr)
+        {
+            *port_ptr = m_tmp_receive_data_pair.second.port();
         }
 
         return true;

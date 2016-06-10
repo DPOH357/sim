@@ -31,19 +31,32 @@ public:
 
     void enable_message_mode(unsigned int messages_queue_length);
 
-    bool get_message(base::raw_data& raw_data, ip::udp::endpoint* endpoint_sender_ptr = nullptr);
+    bool get_message(base::raw_data& raw_data, std::string* address_str_ptr = nullptr, unsigned short* port_ptr = nullptr);
 
     template<typename T>
-    bool get_message(T& val, ip::udp::endpoint* endpoint_sender_ptr = nullptr)
+    bool get_message(T& message, std::string* address_str_ptr = nullptr, unsigned short* port_ptr = nullptr)
     {
         base::raw_data raw_data;
-        if(get_message(raw_data, endpoint_sender_ptr)
-        && raw_data.get_data(val))
+        if(get_message(raw_data, address_str_ptr, port_ptr))
         {
-            return true;
-        }
+            if(raw_data.get_data(message))
+            {
+                return true;
+            }
+            else
+            {
+                std::string text
+                        = std::string("UDP: can't get message: output type: ")
+                        + std::string(typeid(T).name())
+                        + std::string(" size: ")
+                        + std::to_string(sizeof(T))
+                        + std::string("; input message size: ")
+                        + std::to_string(raw_data.get_data_size());
 
-        return false;
+                log::message(log::level::Warning, text);
+                return false;
+            }
+        }
     }
 
     void send_message(const base::raw_data& raw_data);

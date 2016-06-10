@@ -6,6 +6,7 @@
 #include <boost/atomic.hpp>
 #include <boost/asio.hpp>
 
+#include <log/log.h>
 #include <base/raw_data.h>
 #include <base/queue.hpp>
 
@@ -27,6 +28,34 @@ public:
     static boost::shared_ptr<net::tcp_receiver> create(unsigned short port, unsigned int queury_length = 128, size_t data_size = 1024);
 
     bool get_message(base::raw_data& raw_data, std::string* address_str_ptr = nullptr, unsigned short* port_ptr = nullptr);
+
+    template <typename T>
+    bool get_message(T& message, std::string* address_str_ptr = nullptr, unsigned short* port_ptr = nullptr)
+    {
+        base::raw_data raw_data;
+        if(get_message(raw_data, address_str_ptr, port_ptr))
+        {
+            if(raw_data.get_data(message))
+            {
+                return true;
+            }
+            else
+            {
+                std::string text
+                        = std::string("TCP: can't get message: output type: ")
+                        + std::string(typeid(T).name())
+                        + std::string(" size: ")
+                        + std::to_string(sizeof(T))
+                        + std::string("; input message size: ")
+                        + std::to_string(raw_data.get_data_size());
+
+                log::message(log::level::Warning, text);
+                return false;
+            }
+        }
+
+        return false;
+    }
 
     bool valid() const;
 
