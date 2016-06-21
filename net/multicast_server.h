@@ -1,5 +1,5 @@
-#ifndef MULTICAST_H
-#define MULTICAST_H
+#ifndef MULTICAST_SERVER_H
+#define MULTICAST_SERVER_H
 
 #include <export.h>
 #include <boost/bind.hpp>
@@ -18,46 +18,14 @@ namespace sim
 
 using namespace boost::asio;
 
-class SIMLIB_API multicast : public boost::noncopyable
+class SIMLIB_API multicast_server : public boost::noncopyable
 {
-    typedef std::pair<base::raw_data, ip::udp::endpoint> receive_data_pair;
-
-    multicast(unsigned int port);
+    multicast_server(const std::string& multicast_address_str, unsigned int port);
 
 public:
-    ~multicast();
+    ~multicast_server();
 
-    static boost::shared_ptr<multicast> create(unsigned int port);
-
-    void enable_message_mode(unsigned int messages_queue_length);
-
-    bool get_message(base::raw_data& raw_data, std::string* address_str_ptr = nullptr, unsigned short* port_ptr = nullptr);
-
-    template<typename T>
-    bool get_message(T& message, std::string* address_str_ptr = nullptr, unsigned short* port_ptr = nullptr)
-    {
-        base::raw_data raw_data;
-        if(get_message(raw_data, address_str_ptr, port_ptr))
-        {
-            if(raw_data.get_data(message))
-            {
-                return true;
-            }
-            else
-            {
-                std::string text
-                        = std::string("UDP: can't get message: output type: ")
-                        + std::string(typeid(T).name())
-                        + std::string(" size: ")
-                        + std::to_string(sizeof(T))
-                        + std::string("; input message size: ")
-                        + std::to_string(raw_data.get_data_size());
-
-                log::message(log::level::Warning, text);
-                return false;
-            }
-        }
-    }
+    static boost::shared_ptr<multicast_server> create(const std::string& multicast_address_str, unsigned int port);
 
     void send_message(const base::raw_data& raw_data);
 
@@ -72,12 +40,7 @@ public:
 private:
     void run();
 
-    void do_run(bool b_send_priority);
-
-    void do_receive();
-
-    void handler_receive( const boost::system::error_code &error_code
-                        , std::size_t receive_bytes);
+    void do_run();
 
     void do_send();
 
@@ -88,21 +51,19 @@ private:
     boost::atomic<bool>     m_b_valid;
     io_service              m_io_service;
     boost::thread*          m_thread;
-    ip::udp::socket         m_socket;
     ip::udp::endpoint       m_endpoint;
+    ip::udp::socket         m_socket;
+
     base::gate_interface<base::raw_data>*
                             m_gate_send;
-    base::gate_interface<receive_data_pair>*
-                            m_gate_receive;
 
-    receive_data_pair       m_buffer;
-    receive_data_pair       m_tmp_receive_data_pair;
+    base::raw_data          m_buffer;
 };
 
-typedef boost::shared_ptr<multicast> broadcast_ptr;
+typedef boost::shared_ptr<multicast_server> multicast_server_ptr;
 
 
     } // namespace net
 } // namespace sim
 
-#endif // MULTICAST_H
+#endif // MULTICAST_SERVER_H

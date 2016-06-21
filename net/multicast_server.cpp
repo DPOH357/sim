@@ -1,4 +1,4 @@
-#include "multicast.h"
+#include "multicast_server.h"
 
 #include <log/log.h>
 #include <base/gate.hpp>
@@ -11,19 +11,34 @@ namespace sim
 
 using namespace sim::base;
 
-net::multicast::multicast(unsigned int port)
+net::multicast_server::multicast_server(
+        const std::string& multicast_address_str,
+        unsigned int port)
     : m_b_valid(true)
-    , m_socket( m_io_service, ip::udp::endpoint(ip::udp::v4(), port) )
-    , m_endpoint( ip::address_v4::multicast(), port )
+    , m_socket(m_io_service)
     , m_gate_send( new base::gate_stream<base::raw_data>() )
-    , m_gate_receive( new base::gate_stream<receive_data_pair>() )
-    , m_buffer()
 {
-    m_socket.set_option( ip::udp::socket::reuse_address(true) );
-    m_socket.set_option( socket_base::multicast(true) );
+    boost::system::error_code error_code;
+
+    ip::address address = ip::address::from_string(
+                multicast_address_str,
+                error_code);
+    if(error_code)
+    {
+        std::string text("Multicast sender: ");
+        text += "Invalid multicast address: ";
+        text += multicast_address_str;
+        log::message(log::level::Error, text);
+    }
+    m_endpoint.address(address);
+    m_endpoint.port(port);
+
+    m_socket.open(m_endpoint.protocol());
+
+    //m_socket.set_option( ip::udp::socket::reuse_address(true) );
 }
 
-net::multicast::~multicast()
+net::multicast_server::~multicast_server()
 {
     m_b_valid = false;
     m_socket.close();
@@ -31,159 +46,86 @@ net::multicast::~multicast()
     m_thread->join();
     delete m_thread;
 
-    delete m_gate_receive;
     delete m_gate_send;
 
-    log::message(log::level::Debug, std::string("Broadcast closed."));
+    log::message(log::level::Debug,
+                 std::string("Multicast server closed."));
 }
 
-boost::shared_ptr<multicast> multicast::create(unsigned int port)
+boost::shared_ptr<multicast_server> multicast_server::create(
+        const std::string& multicast_address_str,
+        unsigned int port)
 {
-    auto multicast
-        = boost::shared_ptr<net::multicast>(new net::multicast(port));
+    auto multicast_server
+        = boost::shared_ptr<net::multicast_server>(
+                new net::multicast_server(multicast_address_str, port));
 
-    multicast->m_thread = new boost::thread(&net::multicast::run, multicast.get());
+    multicast_server->m_thread = new boost::thread(
+                &net::multicast_server::run,
+                multicast_server.get());
 
-    return multicast;
+    return multicast_server;
 }
 
-void multicast::enable_message_mode(unsigned int messages_queue_length)
-{
-    delete m_gate_receive;
-    delete m_gate_send;
-
-    m_gate_send = new base::gate_message<base::raw_data>
-            (messages_queue_length);
-
-    m_gate_receive = new base::gate_message<multicast::receive_data_pair>
-            (messages_queue_length);
-}
-
-bool multicast::get_message(base::raw_data& raw_data, std::string* address_str_ptr/* = nullptr*/, unsigned short* port_ptr/* = nullptr*/)
-{
-    if(m_gate_receive->pop(m_tmp_receive_data_pair))
-    {
-        raw_data = m_tmp_receive_data_pair.first;
-
-        if(address_str_ptr)
-        {
-            *address_str_ptr = m_tmp_receive_data_pair.second.address().to_string();
-        }
-
-        if(port_ptr)
-        {
-            *port_ptr = m_tmp_receive_data_pair.second.port();
-        }
-
-        return true;
-    }
-
-    return false;
-}
-
-void net::multicast::send_message(const base::raw_data &raw_data)
+void net::multicast_server::send_message(
+        const base::raw_data &raw_data)
 {
     m_gate_send->push(raw_data);
 }
 
-void net::multicast::run()
+void multicast_server::run()
 {
-    do_run(false);
+    do_run();
     m_io_service.run();
 }
 
-void net::multicast::do_run(bool b_send_priority)
+void multicast_server::do_run()
 {
     while(m_b_valid)
     {
-        if(b_send_priority)
+        if(!m_gate_send->empty())
         {
-            if(!m_gate_send->empty())
-            {
-                do_send();
-                return;
-            }
-            else
-            {
-                if(m_socket.available() > 0)
-                {
-                    do_receive();
-                    return;
-                }
-            }
-        }
-        else
-        {
-            if(m_socket.available() > 0)
-            {
-                do_receive();
-                return;
-            }
-            else
-            {
-                if(!m_gate_send->empty())
-                {
-                    do_send();
-                    return;
-                }
-            }
+            do_send();
         }
     }
 }
 
-void net::multicast::do_receive()
+void net::multicast_server::do_send()
 {
-    log::message(log::level::Debug, std::string("UDP: Do receive."));
+    log::message(log::level::Debug,
+                 std::string("Multicast server: Do send."));
 
-    m_socket.async_receive_from( buffer(m_buffer.first.get_data_ptr(), m_buffer.first.get_data_size()),
-                                 m_buffer.second,
-                                 boost::bind( &net::multicast::handler_receive,
-                                              this, _1, _2) );
-}
-
-void net::multicast::handler_receive(const boost::system::error_code &error_code, size_t receive_bytes)
-{
-    if(!error_code)
+    if(m_gate_send->pop(m_buffer))
     {
-        log::message(log::level::Debug, std::string("UDP: Receive complete."));
-        m_gate_receive->push(m_buffer);
-        do_run(true);
-    }
-    else
-    {
-        log::message(log::level::Debug, std::string("UDP: Error receive: ") + error_code.message());
-    }
-}
-
-void net::multicast::do_send()
-{
-    log::message(log::level::Debug, std::string("UDP: Do send."));
-
-    if(m_gate_send->pop(m_buffer.first))
-    {
-        m_socket.async_send_to( buffer(m_buffer.first.get_data_ptr(), m_buffer.first.get_data_size()),
+        m_socket.async_send_to( buffer(m_buffer.get_data_ptr(),
+                                       m_buffer.get_data_size()),
                                 m_endpoint,
-                                boost::bind( &net::multicast::handler_send,
+                                boost::bind( &net::multicast_server::handler_send,
                                              this, _1, _2) );
     }
     else
     {
-        do_run(false);
+        do_run();
     }
 }
 
-void net::multicast::handler_send(const boost::system::error_code &error_code, size_t send_bytes)
+void net::multicast_server::handler_send(
+        const boost::system::error_code &error_code,
+        size_t send_bytes)
 {
     (void)send_bytes;
 
     if(!error_code)
     {
-        log::message(log::level::Debug, std::string("UDP: Send complete."));
-        do_run(false);
+        log::message(log::level::Debug,
+                     std::string("Multicast server: Send complete."));
+        do_run();
     }
     else
     {
-        log::message(log::level::Debug, std::string("UDP: Error send: ") + error_code.message());
+        log::message(log::level::Debug,
+                     std::string("Multicast server: Error send: ")
+                        + error_code.message());
     }
 }
 
