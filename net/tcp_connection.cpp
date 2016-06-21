@@ -30,7 +30,7 @@ tcp_connection::~tcp_connection()
     log::message(log::level::Debug, std::string("TCP connection closed."));
 }
 
-boost::shared_ptr<tcp_connection> tcp_connection::create_wait_connection
+boost::shared_ptr<tcp_connection> tcp_connection::create_as_server
     (unsigned int port, size_t data_size, unsigned int input_queue_length, unsigned int output_queue_length)
 {
     auto tcp_connection
@@ -43,15 +43,15 @@ boost::shared_ptr<tcp_connection> tcp_connection::create_wait_connection
     return tcp_connection;
 }
 
-boost::shared_ptr<tcp_connection> tcp_connection::create_connect
-    (ip::address address, unsigned int port, size_t data_size, unsigned int input_queue_length, unsigned int output_queue_length)
+boost::shared_ptr<tcp_connection> tcp_connection::create_as_client
+    (ip::address server_address, unsigned int port, size_t data_size, unsigned int input_queue_length, unsigned int output_queue_length)
 {
     auto tcp_connection
             = boost::shared_ptr<net::tcp_connection>
                 ( new net::tcp_connection(data_size, input_queue_length, output_queue_length) );
 
     tcp_connection->m_thread = new boost::thread
-            ( boost::bind(&net::tcp_connection::run, tcp_connection.get(), _1, _2), address, port);
+            ( boost::bind(&net::tcp_connection::run, tcp_connection.get(), _1, _2), server_address, port);
 
     return tcp_connection;
 }

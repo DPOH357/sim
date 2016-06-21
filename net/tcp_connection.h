@@ -24,9 +24,9 @@ class SIMLIB_API tcp_connection : public boost::noncopyable
 public:
     ~tcp_connection();
 
-    static boost::shared_ptr<net::tcp_connection> create_wait_connection(unsigned int port, size_t data_size, unsigned int input_queue_length, unsigned int output_queue_length);
+    static boost::shared_ptr<net::tcp_connection> create_as_server(unsigned int port, size_t data_size, unsigned int input_queue_length, unsigned int output_queue_length);
 
-    static boost::shared_ptr<net::tcp_connection> create_connect(ip::address address, unsigned int port, size_t data_size, unsigned int input_queue_length, unsigned int output_queue_length);
+    static boost::shared_ptr<net::tcp_connection> create_as_client(ip::address server_address, unsigned int port, size_t data_size, unsigned int input_queue_length, unsigned int output_queue_length);
 
     bool get_message(base::raw_data& raw_data);
 
