@@ -15,33 +15,55 @@ enum class beacon_message_type
     Response
 };
 
+struct beacon_data
+{
+    unsigned char id;
+    std::string name;
+    std::string address_str;
+    unsigned short port;
+
+    beacon_data() : id(0), port(0) { }
+    beacon_data(const beacon_data& bd)
+        : id(bd.id)
+        , name(bd.name)
+        , address_str(bd.address_str)
+        , port(bd.port)
+    {}
+    beacon_data(
+            unsigned char _id,
+            const std::string& _name,
+            const std::string& _address_str,
+            unsigned short _port)
+        : id(_id)
+        , name(_name)
+        , address_str(_address_str)
+        , port(_port)
+    {}
+};
+
 struct beacon_message_data
 {
-    enum { name_size = 64 };
+    enum { name_size = 128 };
 
     unsigned char id;
     char name[name_size];
-    char address[16];
 
     beacon_message_data()
         : id(0)
     {
         memset(name, 0, sizeof(name));
-        memset(address, 0, sizeof(address));
     }
 
-    beacon_message_data(unsigned char _id, char _name[], char _address[])
+    beacon_message_data(unsigned char _id, char _name[])
         : id(_id)
     {
         strncpy(name, _name, sizeof(name));
-        strncpy(address, _address, sizeof(address));
     }
 
     beacon_message_data(const beacon_message_data& data)
     {
         id = data.id;
         strncpy(name, data.name, sizeof(name));
-        strncpy(address, data.address, sizeof(address));
     }
 };
 

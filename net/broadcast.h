@@ -57,6 +57,8 @@ public:
                 return false;
             }
         }
+
+        return false;
     }
 
     void send_message(const base::raw_data& raw_data);

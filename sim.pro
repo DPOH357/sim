@@ -30,11 +30,13 @@ HEADERS += \
     net/beacon/beacon.h \
     net/beacon/beaconmode.h \
     net/broadcast.h \
+    net/multicast_server.h \
+    net/multicast_client.h \
     net/tcp_connection.h \
     net/tcp_receiver.h \
     net/tcp_sender.h \
-    net/beacon/beaconmessage.h \
-    base/gate.hpp
+    base/gate.hpp \
+    net/beacon/beaconmessage.hpp
 
 
 SOURCES += \
@@ -45,6 +47,8 @@ SOURCES += \
     net/beacon/beacon.cpp \
     net/beacon/beaconmode.cpp \
     net/broadcast.cpp \
+    net/multicast_server.cpp \
+    net/multicast_client.cpp \
     net/tcp_connection.cpp \
     net/tcp_receiver.cpp \
     net/tcp_sender.cpp

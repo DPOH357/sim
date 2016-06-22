@@ -143,6 +143,7 @@ void net::broadcast::do_receive()
 
 void net::broadcast::handler_receive(const boost::system::error_code &error_code, size_t receive_bytes)
 {
+    (void)receive_bytes;
     if(!error_code)
     {
         log::message(log::level::Debug, std::string("UDP: Receive complete."));

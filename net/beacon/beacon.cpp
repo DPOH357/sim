@@ -10,15 +10,12 @@ namespace sim
 
 using namespace sim::base;
 
-beacon::beacon(const std::string& name, const std::string& address_str, unsigned int port)
+beacon::beacon(const std::string& name, unsigned int port)
     : m_mode(nullptr)
     , m_id(0)
 {
     strncpy(m_name, name.c_str(), beacon::beacon_name_max_length);
     m_name[beacon::beacon_name_max_length - 1] = 0;
-
-    strncpy(m_address_str, address_str.c_str(), 16);
-    m_address_str[15] = 0;
 
     m_broadcast = net::broadcast::create(port);
     m_broadcast->enable_message_mode(100);
@@ -41,9 +38,10 @@ void beacon::run()
             m_id = authentication_mode->get_free_id();
             if(m_id)
             {
+                net::beacons_list beacons_list = authentication_mode->get_beacons_list();
                 delete m_mode;
-                beacon_message_data beacon_data(m_id, m_name, m_address_str);
-                m_mode = new net::beacon_mode_default(m_broadcast, beacon_data);
+                beacon_message_data beacon_data(m_id, m_name);
+                m_mode = new net::beacon_mode_default(m_broadcast, beacon_data, beacons_list);
                 log::message(log::level::Debug, "NetBeacon: Start default mode");
             }
         }

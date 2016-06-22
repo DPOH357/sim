@@ -15,7 +15,7 @@ namespace sim
 class beacon
 {
 public:
-    beacon(const std::string& name, const std::string& address_str, unsigned int port);
+    beacon(const std::string& name, unsigned int port);
     ~beacon();
 
     void run();
@@ -30,7 +30,6 @@ private:
 
     unsigned int                        m_id;
     char                                m_name[beacon_name_max_length];
-    char                                m_address_str[16];
 };
 
 
