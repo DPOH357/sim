@@ -54,6 +54,17 @@ void beacon::run()
     }
 }
 
+void beacon::get_beacons_list(beacons_list &beacons_list) const
+{
+    auto mode_default =
+            dynamic_cast<const net::beacon_mode_default*>(m_mode);
+
+    if(mode_default)
+    {
+        mode_default->get_beacons_list(beacons_list);
+    }
+}
+
 
     } // namespace net
 } // namespace sim

@@ -32,12 +32,12 @@ HEADERS += \
     net/broadcast.h \
     net/multicast_server.h \
     net/multicast_client.h \
-    net/tcp_connection.h \
-    net/tcp_receiver.h \
-    net/tcp_sender.h \
     base/gate.hpp \
-    net/beacon/beaconmessage.hpp
-
+    net/beacon/beaconmessage.hpp \
+    net/server/server.h \
+    net/unicast_connection.h \
+    net/unicast_receiver.h \
+    net/unicast_sender.h
 
 SOURCES += \
     base/raw_data.cpp \
@@ -49,7 +49,7 @@ SOURCES += \
     net/broadcast.cpp \
     net/multicast_server.cpp \
     net/multicast_client.cpp \
-    net/tcp_connection.cpp \
-    net/tcp_receiver.cpp \
-    net/tcp_sender.cpp
-
+    net/server/server.cpp \
+    net/unicast_connection.cpp \
+    net/unicast_receiver.cpp \
+    net/unicast_sender.cpp

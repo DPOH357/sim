@@ -137,6 +137,7 @@ void net::multicast_client::handler_receive(
         const boost::system::error_code &error_code,
         size_t receive_bytes)
 {
+    (void)receive_bytes;
     if(!error_code)
     {
         log::message(log::level::Debug,

@@ -21,6 +21,7 @@ public:
     void run();
 
     unsigned int get_id() const { return m_id; }
+    void get_beacons_list(net::beacons_list& beacons_list) const;
 
 private:
     enum { beacon_name_max_length = 64 };

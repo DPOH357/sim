@@ -30,7 +30,7 @@ public:
         return _pop(val);
     }
 
-    bool empty()
+    bool empty() const
     {
         boost::lock_guard<boost::mutex> locker(m_mutex);
         return _empty();
@@ -39,10 +39,10 @@ public:
 private:
     virtual void _push(const T& val) = 0;
     virtual bool _pop(T& val) = 0;
-    virtual bool _empty() = 0;
+    virtual bool _empty() const = 0;
 
 private:
-    boost::mutex        m_mutex;
+    mutable boost::mutex        m_mutex;
 };
 
 
@@ -79,7 +79,7 @@ public:
         return false;
     }
 
-    bool _empty() override
+    bool _empty() const override
     {
         return m_queue.empty();
     }
@@ -118,7 +118,7 @@ public:
         return false;
     }
 
-    bool _empty() override
+    bool _empty() const override
     {
         return !m_b_valid;
     }

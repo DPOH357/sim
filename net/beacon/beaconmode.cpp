@@ -152,6 +152,11 @@ bool net::beacon_mode_default::run()
     return true;
 }
 
+void beacon_mode_default::get_beacons_list(beacons_list &beacons_list) const
+{
+    beacons_list = m_beacons_list;
+}
+
 
     } //namespace net
 } // namespace sim

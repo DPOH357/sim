@@ -39,6 +39,7 @@ public:
             const net::beacons_list& beacons_list);
 
     bool run() override;
+    void get_beacons_list(net::beacons_list& beacons_list) const;
 
 private:
     const unsigned int                  mc_time_duration;
