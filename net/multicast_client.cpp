@@ -11,8 +11,7 @@ namespace sim
 
 using namespace sim::base;
 
-net::multicast_client::multicast_client(
-        const std::string& multicast_address_str,
+net::multicast_client::multicast_client(const std::string& multicast_address_str,
         unsigned int multicast_port)
     : m_b_valid(true)
     , m_socket(m_io_service)
@@ -48,6 +47,8 @@ net::multicast_client::multicast_client(
         listen_endpoint);
     m_socket.set_option(
         ip::multicast::join_group(multicast_address));
+
+    m_buffer_pair.first.reserve(1024);
 }
 
 net::multicast_client::~multicast_client()
@@ -81,21 +82,16 @@ boost::shared_ptr<multicast_client> multicast_client::create(
     return multicast_client;
 }
 
-bool multicast_client::get_message(base::raw_data &raw_data, std::string* address_str_ptr/* = nullptr*/, unsigned short* port_ptr/* = nullptr*/)
+bool multicast_client::get_message(base::raw_data &raw_data, ip::udp::endpoint *endpoint_ptr/* = nullptr*/)
 {
     bool ret =  m_gate_receive->pop(m_tmp_receive_data_pair);
     if(ret)
     {
         raw_data = m_tmp_receive_data_pair.first;
 
-        if(address_str_ptr)
+        if(endpoint_ptr)
         {
-            *address_str_ptr = m_tmp_receive_data_pair.second.address().to_string();
-        }
-
-        if(port_ptr)
-        {
-            *port_ptr = m_tmp_receive_data_pair.second.port();
+            *endpoint_ptr = m_tmp_receive_data_pair.second;
         }
     }
 
@@ -126,15 +122,15 @@ void net::multicast_client::do_receive()
         std::string("Multicast client: Do receive."));
 
     m_socket.async_receive_from( buffer(
-                                     m_buffer.first.get_data_ptr(),
-                                     m_buffer.first.get_data_size()),
-                                     m_buffer.second,
-                                 boost::bind( &net::multicast_client::handler_receive,
+                                     m_buffer_pair.first.get_data_ptr(),
+                                     m_buffer_pair.first.get_data_size()),
+                                 m_buffer_pair.second,
+                                 boost::bind( &multicast_client::handler_receive,
                                               this, _1, _2) );
 }
 
 void net::multicast_client::handler_receive(
-        const boost::system::error_code &error_code,
+        const system::error_code &error_code,
         size_t receive_bytes)
 {
     (void)receive_bytes;
@@ -142,7 +138,7 @@ void net::multicast_client::handler_receive(
     {
         log::message(log::level::Debug,
                      std::string("Multicast client: Receive complete."));
-        m_gate_receive->push(m_buffer);
+        m_gate_receive->push(m_buffer_pair);
         do_run();
     }
     else

@@ -34,7 +34,7 @@ public:
     size_t      get_reserved_size() const;
 
     template<class T>
-    bool        get_data(T& data) const { return get_data(&data, sizeof(T)); }
+    bool        get_data(T& data) const { return get_data((void*)&data, sizeof(T)); }
 
     void *get_data_ptr() const;
 

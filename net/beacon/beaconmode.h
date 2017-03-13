@@ -60,7 +60,7 @@ public:
     bool run() override;
 
     unsigned int get_free_id() const;
-    net::beacons_list  get_beacons_list() const;
+    void get_beacons_list(net::beacons_list& beacons_list) const;
 
 private:
     const unsigned int      mc_timer_request_duration;

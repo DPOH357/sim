@@ -29,10 +29,10 @@ void sim::log::log_function_default(log::level level, const std::string &text)
     switch(level)
     {
     case log::level::Error:     log_level_name = "Error: "; break;
-    case log::level::Warning:   log_level_name = "Warning"; break;
-    case log::level::Debug:     log_level_name = "Debug"; break;
+    case log::level::Warning:   log_level_name = "Warning: "; break;
+    case log::level::Debug:     log_level_name = "Debug: "; break;
     default: break;
     }
 
-    std::cout << log_level_name << text << std::endl;
+    std::cout << log_level_name.c_str() << text.c_str() << std::endl;
 }

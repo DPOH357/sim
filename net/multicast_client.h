@@ -16,6 +16,7 @@ namespace sim
     {
 
 
+using namespace boost;
 using namespace boost::asio;
 
 class SIMLIB_API multicast_client : public boost::noncopyable
@@ -29,13 +30,13 @@ public:
 
     static boost::shared_ptr<multicast_client> create(const std::string& multicast_address_str, unsigned int multicast_port);
 
-    bool get_message(base::raw_data& raw_data, std::string* address_str_ptr = nullptr, unsigned short* port_ptr = nullptr);
+    bool get_message(base::raw_data& raw_data, ip::udp::endpoint* endpoint_ptr = nullptr);
 
     template <typename T>
-    bool get_message(T& message, std::string* address_str_ptr = nullptr, unsigned short* port_ptr = nullptr)
+    bool get_message(T& message, ip::address *address_ptr = nullptr, unsigned short* port_ptr = nullptr)
     {
         base::raw_data raw_data;
-        if(get_message(raw_data, address_str_ptr, port_ptr))
+        if(get_message(raw_data, address_ptr, port_ptr))
         {
             if(raw_data.get_data(message))
             {
@@ -78,7 +79,7 @@ private:
     base::gate_interface<receive_data_pair>*
                             m_gate_receive;
 
-    receive_data_pair       m_buffer;
+    receive_data_pair       m_buffer_pair;
     receive_data_pair       m_tmp_receive_data_pair;
 };
 

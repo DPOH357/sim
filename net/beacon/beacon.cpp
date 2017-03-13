@@ -38,7 +38,8 @@ void beacon::run()
             m_id = authentication_mode->get_free_id();
             if(m_id)
             {
-                net::beacons_list beacons_list = authentication_mode->get_beacons_list();
+                net::beacons_list beacons_list;
+                authentication_mode->get_beacons_list(beacons_list);
                 delete m_mode;
                 beacon_message_data beacon_data(m_id, m_name);
                 m_mode = new net::beacon_mode_default(m_broadcast, beacon_data, beacons_list);
@@ -54,7 +55,7 @@ void beacon::run()
     }
 }
 
-void beacon::get_beacons_list(beacons_list &beacons_list) const
+void beacon::get_beacons_list(net::beacons_list &beacons_list) const
 {
     auto mode_default =
             dynamic_cast<const net::beacon_mode_default*>(m_mode);

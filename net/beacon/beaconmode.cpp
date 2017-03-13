@@ -111,6 +111,11 @@ unsigned int net::beacon_mode_authen::get_free_id() const
     return 0;
 }
 
+void beacon_mode_authen::get_beacons_list(net::beacons_list &beacons_list) const
+{
+    beacons_list = m_beacons_list;
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 
 net::beacon_mode_default::beacon_mode_default(
