@@ -45,12 +45,15 @@ sim::base::raw_data::~raw_data()
 
 void sim::base::raw_data::reserve(size_t size)
 {
+    char* tmp_data = new char[size];
     if(m_memory_ptr)
     {
+        const size_t min_size = (size < m_memory_size ? size : m_memory_size);
+        std::memcpy(tmp_data, m_memory_ptr, min_size);
         delete [] m_memory_ptr;
     }
 
-    m_memory_ptr = new char[size];
+    m_memory_ptr = tmp_data;
     m_memory_size = size;
 }
 
