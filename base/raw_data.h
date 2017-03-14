@@ -38,6 +38,8 @@ public:
 
     void *get_data_ptr() const;
 
+    void set_data_size(size_t data_size);
+
     void operator=(const base::raw_data& raw_data);
 
     template <class T>

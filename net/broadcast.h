@@ -1,6 +1,11 @@
 #ifndef BROADCAST_H
 #define BROADCAST_H
 
+#define BROADCAST_SIMPLE
+
+#ifdef BROADCAST_SIMPLE
+
+
 #include <export.h>
 #include <boost/bind.hpp>
 #include <boost/thread.hpp>
@@ -27,7 +32,7 @@ class SIMLIB_API broadcast : public boost::noncopyable
 public:
     ~broadcast();
 
-    static boost::shared_ptr<broadcast> create(unsigned int port);
+    static boost::shared_ptr<broadcast> create(unsigned short port);
 
     void enable_message_mode(unsigned int messages_queue_length);
 
@@ -76,12 +81,12 @@ private:
 
     void do_run(bool b_send_priority);
 
-    void do_receive();
+    bool do_receive();
 
     void handler_receive( const boost::system::error_code &error_code
                         , std::size_t receive_bytes);
 
-    void do_send();
+    bool do_send();
 
     void handler_send( const boost::system::error_code &error_code
                      , std::size_t sended_bytes);
@@ -106,5 +111,83 @@ typedef boost::shared_ptr<broadcast> broadcast_ptr;
 
     } // namespace net
 } // namespace sim
+
+#else
+
+#include <export.h>
+
+#include <net/broadcast_receiver.h>
+#include <net/broadcast_sender.h>
+
+namespace sim
+{
+    namespace net
+    {
+
+
+
+using namespace boost::asio;
+
+class SIMLIB_API broadcast : public boost::noncopyable
+{
+public:
+    broadcast(unsigned short port_input, unsigned short port_output);
+
+    void enable_message_mode(unsigned int messages_queue_length);
+
+    bool get_message(base::raw_data& raw_data, std::string* address_str_ptr = nullptr, unsigned short* port_ptr = nullptr);
+
+    template<typename T>
+    bool get_message(T& message, std::string* address_str_ptr = nullptr, unsigned short* port_ptr = nullptr)
+    {
+        base::raw_data raw_data;
+        if(m_receiver->get_message(raw_data, address_str_ptr, port_ptr))
+        {
+            if(raw_data.get_data(message))
+            {
+                return true;
+            }
+            else
+            {
+                std::string text
+                        = std::string("UDP: can't get message: output type: ")
+                        + std::string(typeid(T).name())
+                        + std::string(" size: ")
+                        + std::to_string(sizeof(T))
+                        + std::string("; input message size: ")
+                        + std::to_string(raw_data.get_data_size());
+
+                log::message(log::level::Warning, text);
+                return false;
+            }
+        }
+
+        return false;
+    }
+
+    void send_message(const base::raw_data& raw_data);
+
+    template<typename T>
+    void send_message(const T& msg)
+    {
+        base::raw_data raw_data;
+        raw_data.set_data(msg);
+        m_sender->send_message(raw_data);
+    }
+
+private:
+    sim::net::broadcast_receiver_ptr m_receiver;
+    sim::net::broadcast_sender_ptr m_sender;
+};
+
+typedef boost::shared_ptr<broadcast> broadcast_ptr;
+
+
+
+
+    } // namespace net
+} // namespace sim
+
+#endif
 
 #endif // BROADCAST_H
