@@ -7,12 +7,13 @@
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::MainWindow)
+    ui(new Ui::MainWindow),
+    m_bLogChange(false)
 {
     ui->setupUi(this);
 
     sim::log::set_log_level(sim::log::level::Debug);
-    //sim::log::set_log_fuction( std::bind( &MainWindow::logFunc, this, std::placeholders::_1, std::placeholders::_2) );
+    sim::log::set_log_fuction( std::bind( &MainWindow::logFunc, this, std::placeholders::_1, std::placeholders::_2) );
 
     enable_BC(false);
 
@@ -95,6 +96,13 @@ void MainWindow::timerEvent(QTimerEvent *event)
             }
         }
     }
+
+    std::lock_guard<std::mutex> locker(m_mutex);
+    if(m_bLogChange)
+    {
+        m_bLogChange = false;
+        ui->textEdit_Log->setText(m_logText);
+    }
 }
 
 void MainWindow::logFunc(sim::log::level level, const std::string &text)
@@ -112,8 +120,8 @@ void MainWindow::logFunc(sim::log::level level, const std::string &text)
     default:    break;
     }
 
-    str += QString::fromStdString(text);
+    str += QString::fromLocal8Bit(text.c_str()) + "\n";
     m_logText += str;
 
-    ui->textEdit_Log->setText(m_logText);
+    m_bLogChange = true;
 }

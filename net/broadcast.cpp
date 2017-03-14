@@ -21,6 +21,8 @@ net::broadcast::broadcast(unsigned int port)
 {
     m_socket.set_option( ip::udp::socket::reuse_address(true) );
     m_socket.set_option( socket_base::broadcast(true) );
+
+    m_buffer.first.reserve(1024);
 }
 
 net::broadcast::~broadcast()
@@ -152,7 +154,8 @@ void net::broadcast::handler_receive(const boost::system::error_code &error_code
     }
     else
     {
-        log::message(log::level::Debug, std::string("UDP: Error receive: ") + error_code.message());
+        log::message(log::level::Debug, std::string("UDP: Error receive: ") + std::to_string(error_code.value()));
+        do_run(false);
     }
 }
 
@@ -184,7 +187,8 @@ void net::broadcast::handler_send(const boost::system::error_code &error_code, s
     }
     else
     {
-        log::message(log::level::Debug, std::string("UDP: Error send: ") + error_code.message());
+        log::message(log::level::Debug, std::string("UDP: Error send: ") + std::to_string(error_code.value()));
+        do_run(true);
     }
 }
 

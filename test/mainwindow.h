@@ -36,6 +36,7 @@ private:
     std::mutex m_mutex;
 
     QString m_logText;
+    bool m_bLogChange;
 
     QString m_BC_receiveText;
 
