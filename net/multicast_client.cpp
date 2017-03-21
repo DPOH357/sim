@@ -11,7 +11,8 @@ namespace sim
 
 using namespace sim::base;
 
-net::multicast_client::multicast_client(const std::string& multicast_address_str,
+net::multicast_client::multicast_client(
+        const std::string& multicast_address_str,
         unsigned int multicast_port)
     : m_b_valid(true)
     , m_socket(m_io_service)
@@ -29,24 +30,49 @@ net::multicast_client::multicast_client(const std::string& multicast_address_str
         log::message(log::level::Error, text);
     }
 
-#if WIN32
-    ip::address address = ip::address::from_string(
-        "0.0.0.0");
+#ifdef WIN32
+    const std::string listen_address_str("0.0.0.0");
+    ip::address listen_address = ip::address::from_string(
+        listen_address_str, error_code);
+    if(error_code)
+    {
+        std::string text("Multicast client: ");
+        text += "Invalid listen address: " + listen_address_str;
+        log::message(log::level::Error, text);
+    }
     boost::asio::ip::udp::endpoint listen_endpoint(
-        address, multicast_port);
+        listen_address, multicast_port);
 #else
     boost::asio::ip::udp::endpoint listen_endpoint(
         multicast_address, multicast_port);
 #endif
 
     m_socket.open(
-        listen_endpoint.protocol());
+        listen_endpoint.protocol(), error_code);
+    if(error_code)
+    {
+        std::string text("Multicast client: ");
+        text += "Can't open socket";
+        log::message(log::level::Error, text);
+    }
+
     m_socket.set_option(
-        ip::udp::socket::reuse_address(true));
+        ip::udp::socket::reuse_address(true), error_code);
+    if(error_code)
+    {
+        log::message(log::level::Error, error_code.message());
+    }
+
     m_socket.bind(
         listen_endpoint);
-    m_socket.set_option(
-        ip::multicast::join_group(multicast_address));
+
+    ip::multicast::join_group join_group_option(multicast_address);
+    m_socket.set_option(join_group_option, error_code);
+
+    if(error_code)
+    {
+        log::message(log::level::Error, error_code.message());
+    }
 
     m_buffer_pair.first.reserve(1024);
 }
@@ -82,16 +108,24 @@ boost::shared_ptr<multicast_client> multicast_client::create(
     return multicast_client;
 }
 
-bool multicast_client::get_message(base::raw_data &raw_data, ip::udp::endpoint *endpoint_ptr/* = nullptr*/)
+bool multicast_client::get_message(
+        base::raw_data &raw_data,
+        std::string *address_str_ptr/* = nullptr*/,
+        unsigned short* port_ptr/* = nullptr*/)
 {
     bool ret =  m_gate_receive->pop(m_tmp_receive_data_pair);
     if(ret)
     {
         raw_data = m_tmp_receive_data_pair.first;
 
-        if(endpoint_ptr)
+        if(address_str_ptr)
         {
-            *endpoint_ptr = m_tmp_receive_data_pair.second;
+            *address_str_ptr = m_tmp_receive_data_pair.second.address().to_string();
+        }
+
+        if(port_ptr)
+        {
+            *port_ptr = m_tmp_receive_data_pair.second.port();
         }
     }
 

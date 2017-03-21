@@ -11,9 +11,8 @@ namespace sim
 
 using namespace sim::base;
 
-net::multicast_server::multicast_server(
-        const std::string& multicast_address_str,
-        unsigned int port)
+net::multicast_server::multicast_server(const std::string& multicast_address_str,
+        unsigned short port)
     : m_b_valid(true)
     , m_socket(m_io_service)
     , m_gate_send( new base::gate_stream<base::raw_data>() )
@@ -52,9 +51,8 @@ net::multicast_server::~multicast_server()
                  std::string("Multicast server closed."));
 }
 
-boost::shared_ptr<multicast_server> multicast_server::create(
-        const std::string& multicast_address_str,
-        unsigned int port)
+boost::shared_ptr<multicast_server> multicast_server::create(const std::string& multicast_address_str,
+        unsigned short port)
 {
     auto multicast_server
         = boost::shared_ptr<net::multicast_server>(

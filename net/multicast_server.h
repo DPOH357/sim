@@ -20,12 +20,12 @@ using namespace boost::asio;
 
 class SIMLIB_API multicast_server : public boost::noncopyable
 {
-    multicast_server(const std::string& multicast_address_str, unsigned int port);
+    multicast_server(const std::string& multicast_address_str, unsigned short port);
 
 public:
     ~multicast_server();
 
-    static boost::shared_ptr<multicast_server> create(const std::string& multicast_address_str, unsigned int port);
+    static boost::shared_ptr<multicast_server> create(const std::string& multicast_address_str, unsigned short port);
 
     void send_message(const base::raw_data& raw_data);
 
