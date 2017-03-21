@@ -10,11 +10,13 @@ namespace sim
 using namespace sim::base;
 
 tcp_connection::tcp_connection(size_t data_size, unsigned int input_queue_length, unsigned int output_queue_length)
-    : m_socket(m_io_service)
+    : m_b_valid(true)
+    , m_thread(nullptr)
+    , m_socket(m_io_service)
     , m_queue_receive(input_queue_length)
     , m_queue_send(output_queue_length)
     , m_buffer(data_size)
-    , m_b_valid(true)
+
 {
 }
 

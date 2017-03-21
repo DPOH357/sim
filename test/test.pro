@@ -19,13 +19,19 @@ HEADERS  += mainwindow.h
 
 FORMS    += mainwindow.ui
 
-INCLUDEPATH += C:/boost_1_58_0/
 INCLUDEPATH += $$PWD
 INCLUDEPATH += $$PWD/../
 
-LIBS += -LC:/boost_1_58_0/lib64-msvc-11.0 \
-    -llibboost_thread-vc110-mt-gd-1_58 \
-    -llibboost_system-vc110-mt-gd-1_58 \
+win32:LIBS += -L$$PWD/../bin/debug
+win32:LIBS += -lsim$${POST}
 
-LIBS += -L$$PWD/../bin/debug
-LIBS += -lsim$${POST}
+unix:   LIBS += -L /usr/local/lib \
+                -l boost_thread \
+                -l boost_system
+
+unix:  LIBS +=  -L /$$PWD/../bin/ \
+                -l sim
+
+
+#QMAKE_LFLAGS += -lrt
+#QMAKE_CXXFLAGS += -lpthread
