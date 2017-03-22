@@ -25,6 +25,8 @@ net::broadcast::broadcast(unsigned int port)
     m_socket.set_option( socket_base::broadcast(true) );
 
     m_buffer.first.reserve(1024);
+
+    log::message(log::level::Debug, "Broadcast created");
 }
 
 net::broadcast::~broadcast()
@@ -150,13 +152,11 @@ bool net::broadcast::do_receive()
 
 void net::broadcast::handler_receive(const boost::system::error_code &error_code, size_t receive_bytes)
 {
-    (void)receive_bytes;
     if(!error_code)
     {
-        log::message(log::level::Debug, std::string("UDP: Receive complete."));
         m_buffer.first.set_data_size(receive_bytes);
         m_gate_receive->push(m_buffer);
-
+        log::message(log::level::Debug, std::string("UDP: Receive complete."));
     }
     else
     {

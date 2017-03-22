@@ -24,13 +24,16 @@ net::multicast_client::multicast_client(
         multicast_address_str, error_code);
     if(error_code)
     {
-        std::string text("Multicast client: ");
-        text += "Invalid multicast address: ";
-        text += multicast_address_str;
+        std::string text("Multicast sender: ");
+        text += "generate address from string: """;
+        text += multicast_address_str + """ - ";
+        text += error_code.message();
         log::message(log::level::Error, text);
+
+        return;
     }
 
-#ifdef WIN32
+//#ifndef WIN32
     const std::string listen_address_str("0.0.0.0");
     ip::address listen_address = ip::address::from_string(
         listen_address_str, error_code);
@@ -39,42 +42,52 @@ net::multicast_client::multicast_client(
         std::string text("Multicast client: ");
         text += "Invalid listen address: " + listen_address_str;
         log::message(log::level::Error, text);
+        return;
     }
     boost::asio::ip::udp::endpoint listen_endpoint(
         listen_address, multicast_port);
+    /*
 #else
     boost::asio::ip::udp::endpoint listen_endpoint(
         multicast_address, multicast_port);
 #endif
+    */
 
     m_socket.open(
         listen_endpoint.protocol(), error_code);
     if(error_code)
     {
-        std::string text("Multicast client: ");
-        text += "Can't open socket";
+        std::string text("Multicast client: open socket - ");
+        text += error_code.message();
         log::message(log::level::Error, text);
+        return;
     }
 
     m_socket.set_option(
         ip::udp::socket::reuse_address(true), error_code);
     if(error_code)
     {
-        log::message(log::level::Error, error_code.message());
+        std::string text("Multicast client: set reuse address socket option - ");
+        text += error_code.message();
+        log::message(log::level::Error, text);
+        return;
     }
 
     m_socket.bind(
         listen_endpoint);
 
-    ip::multicast::join_group join_group_option(multicast_address);
-    m_socket.set_option(join_group_option, error_code);
-
+    m_socket.set_option( ip::multicast::join_group(multicast_address) , error_code);
     if(error_code)
     {
-        log::message(log::level::Error, error_code.message());
+        std::string text("Multicast client: set join group socket option - ");
+        text += error_code.message();
+        log::message(log::level::Error, text);
+        return;
     }
 
     m_buffer_pair.first.reserve(1024);
+
+    log::message(log::level::Debug, "Multicast client created");
 }
 
 net::multicast_client::~multicast_client()
@@ -140,12 +153,9 @@ void multicast_client::run()
 
 void multicast_client::do_run()
 {
-    while(m_b_valid)
+    if(m_b_valid)
     {
-        if(!m_gate_receive->empty())
-        {
-            do_receive();
-        }
+        do_receive();
     }
 }
 
@@ -157,7 +167,7 @@ void net::multicast_client::do_receive()
 
     m_socket.async_receive_from( buffer(
                                      m_buffer_pair.first.get_data_ptr(),
-                                     m_buffer_pair.first.get_data_size()),
+                                     m_buffer_pair.first.get_reserved_size()),
                                  m_buffer_pair.second,
                                  boost::bind( &multicast_client::handler_receive,
                                               this, _1, _2) );
@@ -167,13 +177,12 @@ void net::multicast_client::handler_receive(
         const system::error_code &error_code,
         size_t receive_bytes)
 {
-    (void)receive_bytes;
     if(!error_code)
     {
+        m_buffer_pair.first.set_data_size(receive_bytes);
+        m_gate_receive->push(m_buffer_pair);
         log::message(log::level::Debug,
                      std::string("Multicast client: Receive complete."));
-        m_gate_receive->push(m_buffer_pair);
-        do_run();
     }
     else
     {
@@ -181,6 +190,8 @@ void net::multicast_client::handler_receive(
                      std::string("Multicast client: Error receive: ")
                         + error_code.message());
     }
+
+    do_run();
 }
 
 

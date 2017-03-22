@@ -57,7 +57,7 @@ void MainWindow::enable_MCS(bool bEnable)
 
     if(bEnable)
     {
-        const std::string address = ui->lineEdit_MCS_Address->text().toStdString();
+        const std::string address = qPrintable(ui->lineEdit_MCS_Address->text());
         const unsigned short port = ui->spinBox_MCS_Port->value();
 
         m_multicast_server = sim::net::multicast_server::create(address, port);
@@ -80,7 +80,7 @@ void MainWindow::enable_MCC(bool bEnable)
 
     if(bEnable)
     {
-        const std::string address = ui->lineEdit_MCC_Address->text().toStdString();
+        const std::string address = qPrintable(ui->lineEdit_MCC_Address->text());
         const unsigned short port = ui->spinBox_MCC_Port->value();
 
         m_multicast_client = sim::net::multicast_client::create(address, port);
@@ -228,11 +228,17 @@ void MainWindow::on_pushButton_MCS_Run_toggled(bool checked)
 
 void MainWindow::on_pushButton_MCS_Send_clicked()
 {
-    QString text = ui->textEdit_MCS_Send->toPlainText();
-    ui->textEdit_MCS_Send->clear();
+    if(m_multicast_server.get())
+    {
+        QString text = ui->textEdit_MCS_Send->toPlainText();
+        ui->textEdit_MCS_Send->clear();
 
-    m_MCS_sendedText += text + "\n";
-    ui->textEdit_MCS_Text->setText(m_MCS_sendedText);
+        m_MCS_sendedText += text + "\n";
+        ui->textEdit_MCS_Text->setText(m_MCS_sendedText);
+
+        m_rawData.set_data(qPrintable(text), text.length() + 1);
+        m_multicast_server->send_message(m_rawData);
+    }
 }
 
 void MainWindow::on_pushButton_MCC_Run_clicked(bool checked)

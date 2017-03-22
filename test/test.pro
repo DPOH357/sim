@@ -22,15 +22,13 @@ FORMS    += mainwindow.ui
 INCLUDEPATH += $$PWD
 INCLUDEPATH += $$PWD/../
 
-win32:LIBS += -L$$PWD/../bin/debug
-win32:LIBS += -lsim$${POST}
+win32:  LIBS += -L$$PWD/../bin/debug \
+                -lsim$${POST}
 
-unix:   LIBS += -L /usr/local/lib \
-                -l boost_thread \
-                -l boost_system
-
-unix:  LIBS +=  -L /$$PWD/../bin/ \
-                -l sim
+unix:   LIBS += -lboost_thread \
+                -lboost_system \
+                -L/$$PWD/../bin/ \
+                -lsim
 
 
 #QMAKE_LFLAGS += -lrt

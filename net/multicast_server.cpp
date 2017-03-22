@@ -22,19 +22,26 @@ net::multicast_server::multicast_server(const std::string& multicast_address_str
     ip::address address = ip::address::from_string(
                 multicast_address_str,
                 error_code);
-    if(error_code)
+    if(!error_code)
+    {
+        m_endpoint.address(address);
+        m_endpoint.port(port);
+
+        m_socket.open(m_endpoint.protocol());
+
+        m_socket.set_option( ip::udp::socket::reuse_address(true) );
+    }
+    else
     {
         std::string text("Multicast sender: ");
-        text += "Invalid multicast address: ";
-        text += multicast_address_str;
+        text += "generate address from string """;
+        text += multicast_address_str + """ - ";
+        text += error_code.message();
         log::message(log::level::Error, text);
     }
-    m_endpoint.address(address);
-    m_endpoint.port(port);
 
-    m_socket.open(m_endpoint.protocol());
+    log::message(log::level::Debug, "Multicast server created");
 
-    //m_socket.set_option( ip::udp::socket::reuse_address(true) );
 }
 
 net::multicast_server::~multicast_server()
@@ -117,7 +124,6 @@ void net::multicast_server::handler_send(
     {
         log::message(log::level::Debug,
                      std::string("Multicast server: Send complete."));
-        do_run();
     }
     else
     {
@@ -125,6 +131,8 @@ void net::multicast_server::handler_send(
                      std::string("Multicast server: Error send: ")
                         + error_code.message());
     }
+
+    do_run();
 }
 
 
