@@ -87,7 +87,10 @@ net::multicast_client::multicast_client(
 
     m_buffer_pair.first.reserve(1024);
 
-    log::message(log::level::Debug, "Multicast client created");
+    std::string text("Multicast client created, ");
+    text += "multicast address " + multicast_address_str;
+    text += ": " + std::to_string(multicast_port);
+    log::message(log::level::Debug, text);
 }
 
 net::multicast_client::~multicast_client()

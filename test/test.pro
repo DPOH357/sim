@@ -4,7 +4,9 @@
 #
 #-------------------------------------------------
 
-QT       += core gui
+QT       -= core gui
+
+#CONFIG   += console
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -22,7 +24,12 @@ FORMS    += mainwindow.ui
 INCLUDEPATH += $$PWD
 INCLUDEPATH += $$PWD/../
 
-win32:  LIBS += -L$$PWD/../bin/debug \
+win32: INCLUDEPATH += C:/boost_1_58_0/
+
+win32:  LIBS += -LC:/boost_1_58_0/lib64-msvc-11.0 \
+                -llibboost_thread-vc110-mt-gd-1_58 \
+                -llibboost_system-vc110-mt-gd-1_58 \
+                -L$$PWD/../bin/debug \
                 -lsim$${POST}
 
 unix:   LIBS += -lboost_thread \

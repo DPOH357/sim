@@ -40,8 +40,10 @@ net::multicast_server::multicast_server(const std::string& multicast_address_str
         log::message(log::level::Error, text);
     }
 
-    log::message(log::level::Debug, "Multicast server created");
-
+    std::string text("Multicast server created, ");
+    text += "multicast address " + multicast_address_str;
+    text += ": " + std::to_string(port);
+    log::message(log::level::Debug, text);
 }
 
 net::multicast_server::~multicast_server()
@@ -91,6 +93,7 @@ void multicast_server::do_run()
         if(!m_gate_send->empty())
         {
             do_send();
+            return;
         }
     }
 }
