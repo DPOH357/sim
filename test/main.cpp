@@ -1,8 +1,8 @@
-#include "mainwindow.h"
-#include <QApplication>
+//#include "mainwindow.h"
+//#include <QApplication>
 
-#define USER
-//#define SENDER
+//#define USER
+#define SENDER
 //#define CLIENT
 
 #ifdef SENDER
