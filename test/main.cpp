@@ -1,8 +1,5 @@
-//#include "mainwindow.h"
-//#include <QApplication>
-
-//#define USER
-#define SENDER
+#define USER
+//#define SENDER
 //#define CLIENT
 
 #ifdef SENDER
@@ -136,6 +133,9 @@ private:
 
 
 #endif
+
+#include "mainwindow.h"
+#include <QApplication>
 
 int main(int argc, char *argv[])
 {
