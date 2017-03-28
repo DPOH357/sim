@@ -14,7 +14,7 @@ sim::base::raw_data::raw_data(size_t size)
     , m_data_size(0)
 {
     reserve(size);
-    memset(m_memory_ptr, 0, size);
+    std::memset(m_memory_ptr, 0, size);
 }
 
 sim::base::raw_data::raw_data(const void *data_ptr, size_t data_size)
@@ -23,7 +23,7 @@ sim::base::raw_data::raw_data(const void *data_ptr, size_t data_size)
     , m_data_size(0)
 {
     reserve(data_size);
-    memcpy(m_memory_ptr, data_ptr, data_size);
+    std::memcpy(m_memory_ptr, data_ptr, data_size);
     m_data_size = data_size;
 }
 
@@ -33,7 +33,7 @@ sim::base::raw_data::raw_data(const sim::base::raw_data &data)
     , m_data_size(0)
 {
     reserve(data.m_data_size);
-    memcpy(m_memory_ptr, data.m_memory_ptr, data.m_data_size);
+    std::memcpy(m_memory_ptr, data.m_memory_ptr, data.m_data_size);
 }
 
 sim::base::raw_data::~raw_data()
@@ -47,7 +47,7 @@ void sim::base::raw_data::reserve(size_t size)
     if(m_memory_ptr)
     {
         const size_t min_size = (size < m_memory_size ? size : m_memory_size);
-        memcpy(tmp_data, m_memory_ptr, min_size);
+        std::memcpy(tmp_data, m_memory_ptr, min_size);
         delete [] m_memory_ptr;
     }
 

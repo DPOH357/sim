@@ -3,7 +3,7 @@
 
 #include <export.h>
 
-#include <memory>
+#include <cstring>
 
 namespace sim
 {
@@ -53,7 +53,7 @@ public:
             m_memory_ptr = new char[sizeof(T)];
         }
         m_data_size = sizeof(T);
-        memcpy(m_memory_ptr, &data, m_data_size);
+        std::memcpy(m_memory_ptr, &data, m_data_size);
     }
 
 private:

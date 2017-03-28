@@ -23,8 +23,7 @@ win32: LIBS +=  -LC:/boost_1_58_0/lib64-msvc-11.0 \
 #                -llibboost_thread-vc90-mt-gd-1_43 \
 #                -llibboost_system-vc90-mt-gd-1_43
 
-unix:  LIBS +=  -L /usr/local/lib \
-                -lboost_thread \
+unix:  LIBS +=  -lboost_thread \
                 -lboost_system
 
 HEADERS += \
