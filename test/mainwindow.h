@@ -5,6 +5,7 @@
 #include <net/broadcast.h>
 #include <net/multicast_client.h>
 #include <net/multicast_server.h>
+#include <net/un
 #include <base/raw_data.h>
 #include <mutex>
 
@@ -42,6 +43,8 @@ private:
     void enable_MCS(bool bEnable);
 
     void enable_MCC(bool bEnable);
+
+    void enable_UCS(bool bEnable);
 
     void run_BC();
 

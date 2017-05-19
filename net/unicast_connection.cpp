@@ -134,7 +134,13 @@ void tcp_connection::do_run(bool b_send_priority)
 
 void tcp_connection::handler_accept(const boost::system::error_code &error_code)
 {
-    if(error_code)
+    if(!error_code)
+    {
+        log::message(log::level::Debug, std::string("TCP connection: Accept valid."));
+
+        do_run(false);
+    }
+    else
     {
         m_b_valid = false;
 
@@ -143,11 +149,6 @@ void tcp_connection::handler_accept(const boost::system::error_code &error_code)
                     + std::to_string(error_code.value())
                     + std::string("): ")
                     + error_code.message());
-    }
-    else
-    {
-        m_b_valid = false;
-        log::message(log::level::Debug, std::string("TCP connection: Accept valid."));
     }
 }
 
@@ -168,7 +169,7 @@ void tcp_connection::handler_connect(const boost::system::error_code &error_code
 void tcp_connection::do_receive()
 {
     log::message(log::level::Debug, std::string("TCP connection: Do receive."));
-    m_socket.async_receive(buffer(m_buffer.get_data_ptr(), m_buffer.get_data_size()),
+    m_socket.async_receive(buffer(m_buffer.get_data_ptr(), m_buffer.get_reserved_size()),
                            boost::bind(&net::tcp_connection::handler_receive
                                        , this, _1, _2));
 }
@@ -181,13 +182,13 @@ void tcp_connection::handler_receive(const boost::system::error_code &error_code
     {
         log::message(log::level::Debug, std::string("TCP connection: Receive complete."));
         m_queue_receive.push(m_buffer);
-        do_run(true);
     }
     else
     {
         m_b_valid = false;
         log::message(log::level::Debug, std::string("TCP connection: Error receive: ") + error_code.message());
     }
+    do_run(true);
 }
 
 void tcp_connection::do_send()
@@ -210,13 +211,14 @@ void tcp_connection::handler_send(const boost::system::error_code &error_code, s
     if(!error_code)
     {
         log::message(log::level::Debug, std::string("TCP connection: Send complete."));
-        do_run(false);
     }
     else
     {
         m_b_valid = false;
         log::message(log::level::Debug, std::string("TCP connection: Error send: ") + error_code.message());
     }
+
+    do_run(false);
 }
 
 

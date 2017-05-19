@@ -94,6 +94,22 @@ void MainWindow::enable_MCC(bool bEnable)
     }
 }
 
+void MainWindow::enable_UCS(bool bEnable)
+{
+    ui->spinBox_UCS_Port->setEnabled(!bEnable);
+    ui->textEdit_UCS_Receive->setEnabled(bEnable);
+    ui->textEdit_UCS_Send->setEnabled(bEnable);
+
+    if(bEnable)
+    {
+
+    }
+    else
+    {
+
+    }
+}
+
 void MainWindow::run_BC()
 {
     if(m_broadcast.get())
